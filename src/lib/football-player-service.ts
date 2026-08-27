@@ -51,7 +51,7 @@ export class FootballPlayerService {
   }
 
   /**
-   * Search players by name with fuzzy matching using FTS5 or LIKE or in-memory fallback
+   * Search players by name with fuzzy matching using FTS5, LIKE, and curated catalog
    */
   async searchPlayers(query: string, limit = 50): Promise<Player[]> {
     const normalized = query.trim().toLowerCase();
@@ -59,6 +59,14 @@ export class FootballPlayerService {
       // Return top famous players if query is empty
       return PLAYERS.slice(0, limit).map(toDBPlayer);
     }
+
+    // 1. Check curated catalog (Legends, Icons, Heroes, Stars)
+    const curatedMatches = PLAYERS.filter((p) => {
+      const searchable = `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`.toLowerCase();
+      return searchable.includes(normalized);
+    }).map(toDBPlayer);
+
+    let dbMatches: Player[] = [];
 
     try {
       const db = this.getDb();
@@ -90,46 +98,54 @@ export class FootballPlayerService {
           `).all(ftsQuery, limit);
 
           if (rows.length > 0) {
-            return rows.map(rowToPlayer);
+            dbMatches = rows.map(rowToPlayer);
           }
         } catch {
           // FTS5 table may not exist, continue to LIKE query
         }
       }
 
-      // Fallback to LIKE query
-      try {
-        const rows = db.prepare(`
-          SELECT * FROM players
-          WHERE search_text LIKE ? OR name LIKE ?
-          ORDER BY 
-            CASE category
-              WHEN 'LEGEND' THEN 4
-              WHEN 'ICON' THEN 3
-              WHEN 'HERO' THEN 2
-              ELSE 1
-            END DESC,
-            COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
-          LIMIT ?
-        `).all(`%${normalized}%`, `%${normalized}%`, limit);
+      // Fallback to LIKE query if FTS returned nothing
+      if (dbMatches.length === 0) {
+        try {
+          const rows = db.prepare(`
+            SELECT * FROM players
+            WHERE search_text LIKE ? OR name LIKE ?
+            ORDER BY 
+              CASE category
+                WHEN 'LEGEND' THEN 4
+                WHEN 'ICON' THEN 3
+                WHEN 'HERO' THEN 2
+                ELSE 1
+              END DESC,
+              COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
+            LIMIT ?
+          `).all(`%${normalized}%`, `%${normalized}%`, limit);
 
-        if (rows.length > 0) {
-          return rows.map(rowToPlayer);
+          if (rows.length > 0) {
+            dbMatches = rows.map(rowToPlayer);
+          }
+        } catch (likeErr) {
+          console.warn('LIKE query warning:', likeErr);
         }
-      } catch (likeErr) {
-        console.warn('LIKE query warning, using array filter fallback:', likeErr);
       }
     } catch (err) {
-      console.warn('Database search exception, falling back to static catalog:', err);
+      console.warn('Database search exception:', err);
     }
 
-    // 3. Guaranteed in-memory fallback
-    const matched = PLAYERS.filter((p) => {
-      const searchable = `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`.toLowerCase();
-      return searchable.includes(normalized);
-    });
+    // Combine curated matches first, then DB matches, deduplicating by normalized name
+    const combined: Player[] = [...curatedMatches];
+    const seenNames = new Set(curatedMatches.map(p => p.name.toLowerCase()));
 
-    return matched.slice(0, limit).map(toDBPlayer);
+    for (const p of dbMatches) {
+      const nameKey = p.name.toLowerCase();
+      if (!seenNames.has(nameKey)) {
+        combined.push(p);
+        seenNames.add(nameKey);
+      }
+    }
+
+    return combined.slice(0, limit);
   }
 
   /**
