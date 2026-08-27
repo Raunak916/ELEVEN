@@ -44,3 +44,15 @@ next-env.d.ts
 *.duckdb
 *.duckdb.*
 
+# references and mock design assets
+/public/references/
+/public/*-reference.*
+*reference*
+
+# temporary scratch json dumps
+/leg.json
+/leg2.json
+/mar.json
+/pel.json
+
+
