@@ -751,8 +751,8 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
               </div>
 
               {/* Row-based results list - same like player search */}
-              <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-[58vh] p-5 sm:p-7">
+              <div className="flex-1 overflow-hidden" data-lenis-prevent>
+                <ScrollArea data-lenis-prevent className="h-[58vh] p-5 sm:p-7 overscroll-contain">
                   <div className="space-y-3">
                     {getFilteredResults().map((result, index) => {
                       const matched = result.selectedMatch || result.bestMatch;

@@ -276,7 +276,7 @@ export function AddMysteryPlayerModal({
             </div>
 
             {/* Results list */}
-            <div className="max-h-[380px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+            <div data-lenis-prevent className="max-h-[380px] overflow-y-auto space-y-2 pr-1 custom-scrollbar overscroll-contain">
               {results.length > 0 ? (
                 results.map((player) => (
                   <div

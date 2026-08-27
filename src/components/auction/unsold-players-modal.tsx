@@ -261,7 +261,7 @@ export function UnsoldPlayersModal({ open, onOpenChange }: UnsoldPlayersModalPro
                 NO UNSOLD PLAYERS MATCH YOUR SEARCH FILTER
               </div>
             ) : (
-              <ScrollArea className="h-[56vh] p-5 sm:p-6">
+              <ScrollArea data-lenis-prevent className="h-[56vh] p-5 sm:p-6 overscroll-contain">
                 <div className="space-y-3">
                   <AnimatePresence mode="popLayout">
                     {filteredUnsold.map((ap) => {

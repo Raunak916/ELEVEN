@@ -358,7 +358,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </div>
 
             {/* Results */}
-            <div className="flex-1 overflow-y-auto px-6 pb-6">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 pb-6 overscroll-contain">
               {hasSearched && !isLoading && results.length === 0 && (
                 <div className="text-center py-16">
                   <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -554,7 +554,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             )}
 
             {/* Configuration Form */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 py-6 space-y-6 overscroll-contain">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
                   Auction Role
@@ -658,7 +658,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </DialogHeader>
 
             {/* Creation Form */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 py-6 space-y-6 overscroll-contain">
               {/* Photo Upload */}
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
