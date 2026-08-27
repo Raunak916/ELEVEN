@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // CommonJS ingestion scripts use require() by design
+    "scripts/**/*.cjs",
   ]),
 ]);
 
