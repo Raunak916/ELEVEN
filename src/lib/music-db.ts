@@ -108,36 +108,43 @@ export function getMusicDB(): Database.Database {
 }
 
 export function getAllVinylCategoriesFromDB(): VinylCategory[] {
-  const db = getMusicDB();
+  try {
+    const db = getMusicDB();
+    const categories = db.prepare('SELECT * FROM vinyl_categories ORDER BY sort_order ASC').all() as any[];
+    const songs = db.prepare('SELECT * FROM vinyl_songs ORDER BY sort_order ASC').all() as any[];
 
-  const categories = db.prepare('SELECT * FROM vinyl_categories ORDER BY sort_order ASC').all() as any[];
-  const songs = db.prepare('SELECT * FROM vinyl_songs ORDER BY sort_order ASC').all() as any[];
+    if (categories && categories.length > 0) {
+      return categories.map((cat) => {
+        const catSongs: VinylSong[] = songs
+          .filter((s) => s.vinyl_id === cat.id)
+          .map((s) => ({
+            title: s.title,
+            artist: s.artist,
+            url: s.url,
+          }));
 
-  return categories.map((cat) => {
-    const catSongs: VinylSong[] = songs
-      .filter((s) => s.vinyl_id === cat.id)
-      .map((s) => ({
-        title: s.title,
-        artist: s.artist,
-        url: s.url,
-      }));
+        return {
+          id: cat.id,
+          title: cat.title,
+          category: cat.category,
+          description: cat.description,
+          accent: {
+            glow: cat.glow,
+            borderGradient: cat.border_gradient,
+            labelGradient: cat.label_gradient,
+            pillBg: cat.pill_bg,
+            pillText: cat.pill_text,
+            badgeBorder: cat.badge_border,
+          },
+          songs: catSongs,
+        };
+      });
+    }
+  } catch (err) {
+    console.warn('Music DB query warning, using static fallback playlists:', err);
+  }
 
-    return {
-      id: cat.id,
-      title: cat.title,
-      category: cat.category,
-      description: cat.description,
-      accent: {
-        glow: cat.glow,
-        borderGradient: cat.border_gradient,
-        labelGradient: cat.label_gradient,
-        pillBg: cat.pill_bg,
-        pillText: cat.pill_text,
-        badgeBorder: cat.badge_border,
-      },
-      songs: catSongs,
-    };
-  });
+  return VINYL_CATEGORIES;
 }
 
 export function addSongToVinylDB(vinylId: string, song: { title: string; artist: string; url: string }): void {

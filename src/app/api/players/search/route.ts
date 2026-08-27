@@ -19,15 +19,20 @@ export async function GET(request: NextRequest) {
     // Future: add filters
     const players = await service.searchPlayers(query, limit);
 
-    // Also search custom players from database
-    const db = getPlayerDB();
-    const customPlayers = db.prepare(`
-      SELECT * FROM players
-      WHERE source = 'custom'
-      AND search_text LIKE ?
-      ORDER BY created_at DESC
-      LIMIT ?
-    `).all(`%${query.toLowerCase()}%`, limit).map(rowToPlayer);
+    // Also search custom players from database if available
+    let customPlayers: any[] = [];
+    try {
+      const db = getPlayerDB();
+      customPlayers = db.prepare(`
+        SELECT * FROM players
+        WHERE source = 'custom'
+        AND search_text LIKE ?
+        ORDER BY created_at DESC
+        LIMIT ?
+      `).all(`%${query.toLowerCase()}%`, limit).map(rowToPlayer);
+    } catch {
+      // custom players query optional
+    }
 
     // Combine and deduplicate (database players take precedence)
     const allPlayers = [...players];

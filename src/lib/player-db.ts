@@ -1,7 +1,9 @@
 import Database from 'better-sqlite3';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import { Player, PhotoSource, PlayerSource } from './player-db-types';
 import { PlayerPosition, PlayerRole, PlayerCategory } from './types';
+import { PLAYERS } from './players-data';
 
 // Re-export Player for compatibility
 export type { Player };
@@ -13,98 +15,108 @@ let dbInstance: Database.Database | null = null;
 export function getPlayerDB(): Database.Database {
   if (dbInstance) return dbInstance;
 
-  const db = new Database(DB_PATH);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
+  // 1. Try opening existing DB in readonly mode (Vercel Serverless safe)
+  try {
+    if (existsSync(DB_PATH)) {
+      try {
+        const db = new Database(DB_PATH, { readonly: true, fileMustExist: true });
+        dbInstance = db;
+        return db;
+      } catch (roErr) {
+        console.warn('Readonly DB connection failed, creating in-memory fallback:', roErr);
+      }
+    }
+  } catch (fsErr) {
+    console.warn('FS check error, creating in-memory fallback:', fsErr);
+  }
 
-  // Create schema if not exists
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS players (
-      id TEXT PRIMARY KEY,
-      external_ids TEXT NOT NULL,           -- JSON
-      name TEXT NOT NULL,
-      first_name TEXT NOT NULL,
-      last_name TEXT NOT NULL,
-      nationality TEXT NOT NULL,
-      nationality_code TEXT NOT NULL,
-      date_of_birth TEXT NOT NULL,
-      primary_position TEXT NOT NULL,
-      secondary_positions TEXT NOT NULL,     -- JSON array
-      role TEXT NOT NULL,
-      photo_url TEXT,
-      photo_source TEXT NOT NULL DEFAULT 'transfermarkt',
-      career_start_year INTEGER,
-      career_end_year INTEGER,
-      current_team TEXT,
-      current_league TEXT,
-      market_value_eur INTEGER,
-      highest_market_value_eur INTEGER,
-      international_caps INTEGER,
-      international_goals INTEGER,
-      category TEXT NOT NULL DEFAULT 'CURRENT',
-      search_text TEXT NOT NULL,
-      source TEXT NOT NULL DEFAULT 'database',  -- 'database' | 'custom'
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
+  // 2. In-Memory fallback database for Serverless / Cloud environments
+  try {
+    const db = new Database(':memory:');
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS players (
+        id TEXT PRIMARY KEY,
+        external_ids TEXT NOT NULL,
+        name TEXT NOT NULL,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        nationality TEXT NOT NULL,
+        nationality_code TEXT NOT NULL,
+        date_of_birth TEXT NOT NULL,
+        primary_position TEXT NOT NULL,
+        secondary_positions TEXT NOT NULL,
+        role TEXT NOT NULL,
+        photo_url TEXT,
+        photo_source TEXT NOT NULL DEFAULT 'transfermarkt',
+        career_start_year INTEGER,
+        career_end_year INTEGER,
+        current_team TEXT,
+        current_league TEXT,
+        market_value_eur INTEGER,
+        highest_market_value_eur INTEGER,
+        international_caps INTEGER,
+        international_goals INTEGER,
+        category TEXT NOT NULL DEFAULT 'CURRENT',
+        search_text TEXT NOT NULL,
+        source TEXT NOT NULL DEFAULT 'database',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_players_name ON players(name);
+      CREATE INDEX IF NOT EXISTS idx_players_search ON players(search_text);
+    `);
 
-    CREATE INDEX IF NOT EXISTS idx_players_name ON players(name);
-    CREATE INDEX IF NOT EXISTS idx_players_nationality ON players(nationality_code);
-    CREATE INDEX IF NOT EXISTS idx_players_category ON players(category);
-    CREATE INDEX IF NOT EXISTS idx_players_search ON players(search_text);
-    CREATE INDEX IF NOT EXISTS idx_players_source ON players(source);
+    const insertStmt = db.prepare(`
+      INSERT OR REPLACE INTO players (
+        id, external_ids, name, first_name, last_name, nationality, nationality_code,
+        date_of_birth, primary_position, secondary_positions, role, photo_url, photo_source,
+        current_team, current_league, category, search_text, source, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
-    -- External ID lookups
-    CREATE TABLE IF NOT EXISTS player_external_ids (
-      player_id TEXT NOT NULL,
-      source TEXT NOT NULL,                  -- 'transfermarkt', 'wikidata', etc.
-      external_id TEXT NOT NULL,
-      PRIMARY KEY (source, external_id),
-      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_external_ids_player ON player_external_ids(player_id);
+    const insertMany = db.transaction((playerList: typeof PLAYERS) => {
+      for (const p of playerList) {
+        insertStmt.run(
+          p.id,
+          JSON.stringify({}),
+          p.name,
+          p.firstName || '',
+          p.lastName || '',
+          p.nationality || 'Unknown',
+          p.nationalityCode || 'XX',
+          p.dateOfBirth || '2000-01-01',
+          p.position || 'CM',
+          JSON.stringify([]),
+          p.role || 'Midfielder',
+          p.photo || null,
+          'generated',
+          p.team || 'Unknown',
+          p.league || 'Unknown',
+          p.category || 'CURRENT',
+          `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`.toLowerCase(),
+          p.source || 'database',
+          new Date().toISOString(),
+          new Date().toISOString()
+        );
+      }
+    });
 
-    -- FTS5 full-text search
-    CREATE VIRTUAL TABLE IF NOT EXISTS players_fts USING fts5(
-      id UNINDEXED,
-      name,
-      first_name,
-      last_name,
-      nationality,
-      current_team,
-      content='players',
-      content_rowid='rowid',
-      tokenize='unicode61 remove_diacritics 2'
-    );
-
-    -- Triggers to keep FTS in sync
-    CREATE TRIGGER IF NOT EXISTS players_ai AFTER INSERT ON players BEGIN
-      INSERT INTO players_fts(rowid, name, first_name, last_name, nationality, current_team)
-      VALUES (new.rowid, new.name, new.first_name, new.last_name, new.nationality, new.current_team);
-    END;
-
-    CREATE TRIGGER IF NOT EXISTS players_ad AFTER DELETE ON players BEGIN
-      DELETE FROM players_fts WHERE rowid = old.rowid;
-    END;
-
-    CREATE TRIGGER IF NOT EXISTS players_au AFTER UPDATE ON players BEGIN
-      UPDATE players_fts SET
-        name = new.name,
-        first_name = new.first_name,
-        last_name = new.last_name,
-        nationality = new.nationality,
-        current_team = new.current_team
-      WHERE rowid = new.rowid;
-    END;
-  `);
-
-  dbInstance = db;
-  return db;
+    insertMany(PLAYERS);
+    dbInstance = db;
+    return db;
+  } catch (memErr) {
+    console.error('In-memory DB fallback fatal error:', memErr);
+    throw memErr;
+  }
 }
 
 export function closePlayerDB(): void {
   if (dbInstance) {
-    dbInstance.close();
+    try {
+      dbInstance.close();
+    } catch {
+      // ignore
+    }
     dbInstance = null;
   }
 }
