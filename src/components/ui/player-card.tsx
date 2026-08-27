@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CountryFlag } from '@/components/ui/country-flag';
+import { generatePlayerPhoto } from '@/lib/player-photo';
 
 const ROLE_CARD_STYLES: Record<
   PlayerRole,
@@ -80,6 +81,16 @@ export function PlayerCard({
   const isUnsold = status === 'UNSOLD';
   const isPool = variant === 'pool';
   const isSearch = variant === 'search';
+
+  const fallbackPhoto = React.useMemo(() => {
+    return generatePlayerPhoto(basePlayer.name, basePlayer.category || 'CURRENT', basePlayer.position || 'CM');
+  }, [basePlayer.name, basePlayer.category, basePlayer.position]);
+
+  const [imgSrc, setImgSrc] = React.useState<string>(basePlayer.photo || fallbackPhoto);
+
+  React.useEffect(() => {
+    setImgSrc(basePlayer.photo || fallbackPhoto);
+  }, [basePlayer.photo, fallbackPhoto]);
 
   // 3D interactive physics tilt state
   const [hovered, setHovered] = React.useState(false);
@@ -208,11 +219,13 @@ export function PlayerCard({
               className="relative aspect-[3/4] mx-2.5 my-1.5 rounded-xl overflow-hidden bg-black/60 border border-white/10 shadow-inner group-hover:border-white/20 transition-colors"
               style={{ aspectRatio: '3 / 4' }}
             >
-              {basePlayer.photo ? (
+              {imgSrc ? (
                 <Image
-                  src={basePlayer.photo}
+                  src={imgSrc}
                   alt={basePlayer.name}
                   fill
+                  unoptimized={imgSrc.startsWith('data:')}
+                  onError={() => setImgSrc(fallbackPhoto)}
                   className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   sizes="180px"
                   style={{
@@ -333,11 +346,13 @@ export function PlayerCard({
       >
         <div className="flex items-center gap-3.5">
           <div className="relative flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-black/60 border border-white/10 flex items-center justify-center">
-            {basePlayer.photo ? (
+            {imgSrc ? (
               <Image
-                src={basePlayer.photo}
+                src={imgSrc}
                 alt={basePlayer.name}
                 fill
+                unoptimized={imgSrc.startsWith('data:')}
+                onError={() => setImgSrc(fallbackPhoto)}
                 className="object-cover object-top"
                 sizes="56px"
               />
@@ -375,11 +390,13 @@ export function PlayerCard({
       className={cn('relative glass rounded-2xl overflow-hidden border border-border/40', className)}
     >
       <div className="aspect-square relative overflow-hidden bg-black/50 flex items-center justify-center">
-        {basePlayer.photo ? (
+        {imgSrc ? (
           <Image
-            src={basePlayer.photo}
+            src={imgSrc}
             alt={basePlayer.name}
             fill
+            unoptimized={imgSrc.startsWith('data:')}
+            onError={() => setImgSrc(fallbackPhoto)}
             className="object-cover object-top"
             sizes="200px"
           />

@@ -441,7 +441,7 @@ export function DrawScreen() {
                         </span>
                       </div>
                       <div className="relative w-44 h-44 mx-auto my-auto rounded-2xl overflow-hidden bg-black/40">
-                        <Image src={cyclePlayer.player.photo} alt={cyclePlayer.player.name} fill className="object-cover" />
+                        <Image src={cyclePlayer.player.photo} alt={cyclePlayer.player.name} fill unoptimized={Boolean(cyclePlayer.player.photo?.startsWith('data:'))} className="object-cover" />
                       </div>
                       <p className="text-center font-black text-lg">{cyclePlayer.player.name}</p>
                     </div>
@@ -459,7 +459,7 @@ export function DrawScreen() {
                   >
                     <div className="w-full h-full rounded-[22px] bg-card/95 backdrop-blur-xl flex flex-col justify-between p-4 relative">
                       <div className="relative w-44 h-44 mx-auto my-auto rounded-2xl overflow-hidden bg-black/40">
-                        <Image src={cyclePlayer.player.photo} alt={cyclePlayer.player.name} fill className="object-cover" />
+                        <Image src={cyclePlayer.player.photo} alt={cyclePlayer.player.name} fill unoptimized={Boolean(cyclePlayer.player.photo?.startsWith('data:'))} className="object-cover" />
                       </div>
                     </div>
                   </div>
@@ -680,7 +680,7 @@ function TasteSkillRevealCard({
 
             {/* Photo & Info */}
             <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-black/60 border border-white/10 my-2 shadow-inner" style={{ aspectRatio: '3 / 4' }}>
-              <Image src={player.player.photo} alt={player.player.name} fill className="object-cover object-top" sizes="320px" priority />
+              <Image src={player.player.photo} alt={player.player.name} fill unoptimized={Boolean(player.player.photo?.startsWith('data:'))} className="object-cover object-top" sizes="320px" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
               <div className="absolute bottom-2.5 left-2.5 right-2.5">
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--gold)] block">{player.player.team}</span>
