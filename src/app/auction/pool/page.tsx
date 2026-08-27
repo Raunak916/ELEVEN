@@ -693,9 +693,72 @@ function PoolPageContent() {
             </div>
           )}
 
-          {/* Add Player & Bulk Import Modals - Available for both Tabs */}
+
+
+          {/* Floating Batch Selection Toolbar */}
+          <AnimatePresence>
+            {isSelectionMode && (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94vw] max-w-xl p-3 sm:p-4 rounded-3xl bg-[#080c14]/90 backdrop-blur-2xl border border-white/20 shadow-2xl flex flex-wrap items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Badge className="bg-destructive text-white font-mono font-bold text-xs px-2.5 py-1">
+                    {selectedPlayerIds.length} Selected
+                  </Badge>
+                  <span className="text-xs text-muted-foreground hidden sm:inline">
+                    of {allPlayers.length} filtered cards
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSelectAll}
+                    className="h-9 px-3 text-xs font-mono font-bold rounded-xl border-white/15 hover:bg-white/10"
+                  >
+                    {selectedPlayerIds.length === allPlayers.length && allPlayers.length > 0
+                      ? 'Deselect All'
+                      : 'Select All'}
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    disabled={selectedPlayerIds.length === 0}
+                    onClick={() => setIsConfirmDeleteOpen(true)}
+                    className="h-9 px-4 text-xs font-heading font-black uppercase tracking-wider rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg gap-1.5"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Remove ({selectedPlayerIds.length})</span>
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setIsSelectionMode(false);
+                      setSelectedPlayerIds([]);
+                    }}
+                    className="h-9 px-2.5 text-xs text-muted-foreground hover:text-foreground rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Root Level Modals & Dialogs - Always Mounted & Accessible */}
           <AddPlayerModal open={showAddModal} onOpenChange={setShowAddModal} />
           <BulkImportModal open={showBulkImportModal} onOpenChange={setShowBulkImportModal} />
+          <UnsoldPlayersModal open={showUnsoldModal} onOpenChange={setShowUnsoldModal} />
 
           {/* Edit Player Dialog */}
           {editingPlayer && (
@@ -705,7 +768,7 @@ function PoolPageContent() {
                 if (!open) setEditingPlayer(null);
               }}
             >
-              <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl border-border/40 shadow-2xl p-0 overflow-hidden rounded-3xl">
+              <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl border-border/40 shadow-2xl p-0 overflow-hidden rounded-3xl z-50">
                 <DialogHeader className="p-6 pb-4 border-b border-white/10">
                   <DialogTitle className="flex items-center gap-2 font-heading font-black text-xl text-foreground">
                     <Pencil className="h-5 w-5 text-[var(--gold)]" />
@@ -833,69 +896,6 @@ function PoolPageContent() {
               </DialogContent>
             </Dialog>
           )}
-
-          {/* Unsold Players Modal */}
-          <UnsoldPlayersModal open={showUnsoldModal} onOpenChange={setShowUnsoldModal} />
-
-          {/* Floating Batch Selection Toolbar */}
-          <AnimatePresence>
-            {isSelectionMode && (
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94vw] max-w-xl p-3 sm:p-4 rounded-3xl bg-[#080c14]/90 backdrop-blur-2xl border border-white/20 shadow-2xl flex flex-wrap items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Badge className="bg-destructive text-white font-mono font-bold text-xs px-2.5 py-1">
-                    {selectedPlayerIds.length} Selected
-                  </Badge>
-                  <span className="text-xs text-muted-foreground hidden sm:inline">
-                    of {allPlayers.length} filtered cards
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleSelectAll}
-                    className="h-9 px-3 text-xs font-mono font-bold rounded-xl border-white/15 hover:bg-white/10"
-                  >
-                    {selectedPlayerIds.length === allPlayers.length && allPlayers.length > 0
-                      ? 'Deselect All'
-                      : 'Select All'}
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    disabled={selectedPlayerIds.length === 0}
-                    onClick={() => setIsConfirmDeleteOpen(true)}
-                    className="h-9 px-4 text-xs font-heading font-black uppercase tracking-wider rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg gap-1.5"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    <span>Remove ({selectedPlayerIds.length})</span>
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setIsSelectionMode(false);
-                      setSelectedPlayerIds([]);
-                    }}
-                    className="h-9 px-2.5 text-xs text-muted-foreground hover:text-foreground rounded-xl"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Batch Delete Confirmation Dialog */}
           {isConfirmDeleteOpen && (
