@@ -288,6 +288,7 @@ export function UnsoldPlayersModal({ open, onOpenChange }: UnsoldPlayersModalPro
                                 src={basePlayer.photo}
                                 alt={basePlayer.name}
                                 fill
+                                unoptimized={true}
                                 className="object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-300"
                                 sizes="64px"
                               />
@@ -434,6 +435,7 @@ export function UnsoldPlayersModal({ open, onOpenChange }: UnsoldPlayersModalPro
                     src={popConfig.auctionPlayer.player.photo}
                     alt={popConfig.auctionPlayer.player.name}
                     fill
+                    unoptimized={true}
                     className="object-cover object-top"
                     sizes="64px"
                   />

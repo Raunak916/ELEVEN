@@ -786,6 +786,7 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
                                 src={matched.photo}
                                 alt={matched.name}
                                 fill
+                                unoptimized={true}
                                 className="object-cover object-top"
                                 sizes="64px"
                               />
@@ -882,6 +883,7 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
                                               src={candidate.photo}
                                               alt={candidate.name}
                                               fill
+                                              unoptimized={true}
                                               className="object-cover"
                                               sizes="24px"
                                             />
@@ -1065,6 +1067,7 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
                   src={popConfig.player.photo}
                   alt={popConfig.player.name}
                   fill
+                  unoptimized={true}
                   className="object-cover object-top"
                   sizes="64px"
                 />

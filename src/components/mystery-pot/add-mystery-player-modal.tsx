@@ -287,7 +287,7 @@ export function AddMysteryPlayerModal({
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="relative w-11 h-11 rounded-xl bg-black/40 overflow-hidden flex-shrink-0 border border-border/40">
                         {player.photo ? (
-                          <Image src={player.photo} alt={player.name} fill className="object-cover" />
+                          <Image src={player.photo} alt={player.name} fill unoptimized={true} className="object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center font-bold text-xs">
                             {player.name.charAt(0)}
@@ -343,7 +343,7 @@ export function AddMysteryPlayerModal({
             <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-muted/20 border border-border/40">
               <div className="relative w-14 h-14 rounded-xl bg-black/40 overflow-hidden flex-shrink-0 border border-border/40">
                 {selectedPlayer.photo && (
-                  <Image src={selectedPlayer.photo} alt={selectedPlayer.name} fill className="object-cover" />
+                  <Image src={selectedPlayer.photo} alt={selectedPlayer.name} fill unoptimized={true} className="object-cover" />
                 )}
               </div>
               <div className="min-w-0 flex-1">

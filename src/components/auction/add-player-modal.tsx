@@ -406,6 +406,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                                 src={player.photo}
                                 alt={player.name}
                                 fill
+                                unoptimized={true}
                                 className="object-cover object-top"
                                 sizes="64px"
                               />
@@ -530,6 +531,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                     src={selectedPlayer.photo}
                     alt={selectedPlayer.name}
                     fill
+                    unoptimized={true}
                     className="object-cover object-top"
                     sizes="80px"
                   />

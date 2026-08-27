@@ -724,6 +724,7 @@ function PoolPageContent() {
                         src={editingPlayer.player.photo}
                         alt={editingPlayer.player.name}
                         fill
+                        unoptimized={true}
                         className="object-cover object-top"
                         sizes="64px"
                       />
