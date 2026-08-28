@@ -26,8 +26,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1940-10-23",
     "team": "Santos",
     "league": "Campeonato Brasileiro",
-    "category": "LEGEND",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/6270-1604255690.jpg?lm=1"
+    "category": "LEGEND"
   },
   {
     "name": "Diego Maradona",
@@ -75,8 +74,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1972-06-23",
     "team": "Real Madrid",
     "league": "La Liga",
-    "category": "LEGEND",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/106825-1569361142.jpg?lm=1"
+    "category": "LEGEND"
   },
   {
     "name": "Ronaldo Nazário",
@@ -88,21 +86,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1976-09-22",
     "team": "Inter Milan",
     "league": "Serie A",
-    "category": "LEGEND",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/250010-1661909481.jpg?lm=1"
-  },
-  {
-    "name": "Pelé",
-    "firstName": "Edson",
-    "lastName": "Arantes do Nascimento",
-    "nationality": "Brazil",
-    "nationalityCode": "BR",
-    "position": "ST",
-    "dateOfBirth": "1940-10-23",
-    "team": "Santos",
-    "league": "Campeonato Brasileiro",
-    "category": "LEGEND",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/6270-1604255690.jpg?lm=1"
+    "category": "LEGEND"
   },
   {
     "name": "Alfredo Di Stéfano",
@@ -126,8 +110,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1946-05-22",
     "team": "Manchester United",
     "league": "Premier League",
-    "category": "LEGEND",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/158118-1781009887.jpg?lm=1"
+    "category": "LEGEND"
   },
   {
     "name": "Ferenc Puskás",
@@ -163,8 +146,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1968-06-26",
     "team": "AC Milan",
     "league": "Serie A",
-    "category": "LEGEND",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/539134-1695031448.jpg?lm=1"
+    "category": "LEGEND"
   },
   {
     "name": "Bobby Charlton",
@@ -176,8 +158,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1937-10-11",
     "team": "Manchester United",
     "league": "Premier League",
-    "category": "LEGEND",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/119256-1418922339.jpg?lm=1"
+    "category": "LEGEND"
   },
   {
     "name": "Eusébio",
@@ -239,8 +220,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1977-08-17",
     "team": "Arsenal",
     "league": "Premier League",
-    "category": "ICON",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_13582_543_2013_05_22_1.jpg?lm=1"
+    "category": "ICON"
   },
   {
     "name": "Andrés Iniesta",
@@ -433,7 +413,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Santos",
     "league": "Campeonato Brasileiro",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/16519-1459944561.png?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/68290-1692601435.jpg?lm=1"
   },
   {
     "name": "Robert Lewandowski",
@@ -446,7 +426,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Barcelona",
     "league": "La Liga",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/14934-1623854628.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/38253-1760445524.jpg?lm=1"
   },
   {
     "name": "Sergio Ramos",
@@ -485,7 +465,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Real Madrid",
     "league": "La Liga",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/20007-1454413148.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/39381-1658665343.jpg?lm=1"
   },
   {
     "name": "Mohamed Salah",
@@ -498,7 +478,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Liverpool",
     "league": "Premier League",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/13483-1617013076.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/148455-1727337594.jpg?lm=1"
   },
   {
     "name": "Kevin De Bruyne",
@@ -524,7 +504,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Liverpool",
     "league": "Premier League",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_44729_235_2013_07_16_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/139208-1702049837.jpg?lm=1"
   },
   {
     "name": "Sergio Agüero",
@@ -602,7 +582,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Al-Ittihad",
     "league": "Saudi Pro League",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_5614_750_2012_2.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/225083-1770653003.png?lm=1"
   },
   {
     "name": "Harry Kane",
@@ -615,7 +595,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Bayern Munich",
     "league": "Bundesliga",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_61583_989_2013_11_07_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/132098-1700211169.jpg?lm=1"
   },
   {
     "name": "Kylian Mbappé",
@@ -719,7 +699,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Inter Miami",
     "league": "MLS",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_29193_3302_2012_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/44352-1771695059.jpg?lm=1"
   },
   {
     "name": "Philippe Coutinho",
@@ -732,7 +712,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Vasco da Gama",
     "league": "Campeonato Brasileiro",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_6931_1268_2012_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/80444-1746211175.jpg?lm=1"
   },
   {
     "name": "Marcelo",
@@ -745,7 +725,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Fluminense",
     "league": "Campeonato Brasileiro",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/14881-1705756665.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/44501-1603112392.jpg?lm=1"
   },
   {
     "name": "Dani Alves",
@@ -758,7 +738,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Bahia",
     "league": "Campeonato Brasileiro",
     "category": "HERO",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/13121-1595920356.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/15951-1635327520.jpg?lm=1"
   },
   {
     "name": "Jude Bellingham",
@@ -784,7 +764,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Real Madrid",
     "league": "La Liga",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/16519-1459944561.png?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/371998-1761575144.jpg?lm=1"
   },
   {
     "name": "Bukayo Saka",
@@ -797,7 +777,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Arsenal",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/47781-1597039455.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/433177-1684155052.jpg?lm=1"
   },
   {
     "name": "Phil Foden",
@@ -849,7 +829,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Barcelona",
     "league": "La Liga",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/24700-1548259897.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/683840-1744278342.jpg?lm=1"
   },
   {
     "name": "Gavi",
@@ -862,7 +842,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Barcelona",
     "league": "La Liga",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_15461_3709_2013_10_17_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/646740-1682685701.jpg?lm=1"
   },
   {
     "name": "Rodrygo",
@@ -888,7 +868,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Real Madrid",
     "league": "La Liga",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_8540_1041_2010_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/369081-1731018042.jpg?lm=1"
   },
   {
     "name": "Aurélien Tchouaméni",
@@ -927,7 +907,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Manchester City",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/37574-1530704994.png?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/258004-1684921271.jpg?lm=1"
   },
   {
     "name": "Alisson",
@@ -966,7 +946,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Paris Saint-Germain",
     "league": "Ligue 1",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/19368-1563265500.png?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/288230-1684148641.jpg?lm=1"
   },
   {
     "name": "Khvicha Kvaratskhelia",
@@ -1031,7 +1011,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Arsenal",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/106437-1743534112.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/316264-1782847069.jpg?lm=1"
   },
   {
     "name": "Declan Rice",
@@ -1044,7 +1024,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Arsenal",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/5285-1416219199.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/357662-1687962936.jpg?lm=1"
   },
   {
     "name": "Josko Gvardiol",
@@ -1070,7 +1050,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "AC Milan",
     "league": "Serie A",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/46220-1515756050.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/339808-1725532072.jpg?lm=1"
   },
   {
     "name": "Achraf Hakimi",
@@ -1122,7 +1102,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Inter Milan",
     "league": "Serie A",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/8184-1583310157.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/406625-1695024988.jpg?lm=1"
   },
   {
     "name": "Marcus Rashford",
@@ -1148,7 +1128,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Manchester United",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/10254-1563989720.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/240306-1683882766.jpg?lm=1"
   },
   {
     "name": "Gabriel Jesus",
@@ -1161,7 +1141,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Arsenal",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/67925-1547404113.png?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/363205-1669711141.jpg?lm=1"
   },
   {
     "name": "Frenkie de Jong",
@@ -1174,7 +1154,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Barcelona",
     "league": "La Liga",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/4672-1448982742.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/326330-1746041680.jpg?lm=1"
   },
   {
     "name": "Reece James",
@@ -1187,7 +1167,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Chelsea",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/3333-1662621121.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/472423-1683900849.jpg?lm=1"
   },
   {
     "name": "Emi Martínez",
@@ -1200,7 +1180,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Aston Villa",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/8184-1583310157.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/111873-1668180824.jpg?lm=1"
   },
   {
     "name": "Ederson",
@@ -1213,7 +1193,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Manchester City",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/21480-1465323357.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/238223-1765380595.jpg?lm=1"
   },
   {
     "name": "Antonio Rüdiger",
@@ -1252,7 +1232,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Manchester City",
     "league": "Premier League",
     "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/277-1438158926.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/241641-1684311533.jpg?lm=1"
   },
   {
     "name": "Kai Havertz",
@@ -1268,19 +1248,6 @@ const RAW_PLAYERS: RawPlayer[] = [
     "photo": "https://img.a.transfermarkt.technology/portrait/header/309400-1782889722.jpg?lm=1"
   },
   {
-    "name": "Mitchell Baker",
-    "firstName": "Mitchell",
-    "lastName": "Baker",
-    "nationality": "Netherlands",
-    "nationalityCode": "NL",
-    "position": "CB",
-    "dateOfBirth": "2001-06-27",
-    "team": "Liverpool",
-    "league": "Premier League",
-    "category": "CURRENT",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/62638-1410950146.jpg?lm=1"
-  },
-  {
     "name": "David Villa",
     "firstName": "David",
     "lastName": "Villa",
@@ -1291,7 +1258,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Retired",
     "league": "Retired",
     "category": "RETIRED",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_7763_142_2012_10_24_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/7980-1684165569.jpg?lm=1"
   },
   {
     "name": "Wesley Sneijder",
@@ -1377,8 +1344,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1977-06-27",
     "team": "Retired",
     "league": "Retired",
-    "category": "RETIRED",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_7899_367_2013_04_03_1.jpg?lm=1"
+    "category": "RETIRED"
   },
   {
     "name": "Ryan Giggs",
@@ -1403,8 +1369,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "dateOfBirth": "1971-09-20",
     "team": "Retired",
     "league": "Retired",
-    "category": "RETIRED",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_27292_366_2013_10_17_1.jpg?lm=1"
+    "category": "RETIRED"
   },
   {
     "name": "Javier Zanetti",
@@ -1468,7 +1433,7 @@ const RAW_PLAYERS: RawPlayer[] = [
     "team": "Retired",
     "league": "Retired",
     "category": "RETIRED",
-    "photo": "https://img.a.transfermarkt.technology/portrait/header/s_3179_379_2014_01_15_1.jpg?lm=1"
+    "photo": "https://img.a.transfermarkt.technology/portrait/header/3182-1683297696.jpg?lm=1"
   }
 ];
 
