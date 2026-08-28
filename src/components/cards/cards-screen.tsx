@@ -4,11 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppLayout } from '@/components/layout/app-layout';
 import { CoverflowCarousel } from './coverflow-carousel';
-import {
-  DEFAULT_POWER_CARDS,
-  DEFAULT_SICK_CARDS,
-  CustomAuctionCard,
-} from './cards-data';
+import { CustomAuctionCard } from './cards-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -18,7 +14,6 @@ import {
   Flame,
   Plus,
   Trash2,
-  RotateCcw,
   Sparkles,
   Eye,
   EyeOff,
@@ -33,15 +28,15 @@ import { firePlayerRevealConfetti } from '@/lib/confetti';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-const STORAGE_POWER_KEY = 'football-auction-power-cards';
-const STORAGE_SICK_KEY = 'football-auction-sick-cards';
+const STORAGE_POWER_KEY = 'football-auction-power-cards-v2';
+const STORAGE_SICK_KEY = 'football-auction-sick-cards-v2';
 
 export function CardsScreen() {
   const [activeTab, setActiveTab] = useState<'power' | 'sick'>('power');
 
   // Card states for Power Cards and Sick Cards with persistence
-  const [powerCards, setPowerCards] = useState<CustomAuctionCard[]>(DEFAULT_POWER_CARDS);
-  const [sickCards, setSickCards] = useState<CustomAuctionCard[]>(DEFAULT_SICK_CARDS);
+  const [powerCards, setPowerCards] = useState<CustomAuctionCard[]>([]);
+  const [sickCards, setSickCards] = useState<CustomAuctionCard[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Form input state
@@ -61,14 +56,14 @@ export function CardsScreen() {
       const savedPower = localStorage.getItem(STORAGE_POWER_KEY);
       if (savedPower) {
         const parsed = JSON.parse(savedPower);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           setPowerCards(parsed);
         }
       }
       const savedSick = localStorage.getItem(STORAGE_SICK_KEY);
       if (savedSick) {
         const parsed = JSON.parse(savedSick);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           setSickCards(parsed);
         }
       }
@@ -229,16 +224,6 @@ export function CardsScreen() {
     toast.info('Deck cleared');
   };
 
-  // Reset to default sample cards
-  const handleResetDefaults = () => {
-    if (activeTab === 'power') {
-      setPowerCards(DEFAULT_POWER_CARDS);
-    } else {
-      setSickCards(DEFAULT_SICK_CARDS);
-    }
-    toast.success('Restored default deck');
-  };
-
   return (
     <AppLayout>
       <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
@@ -278,18 +263,6 @@ export function CardsScreen() {
             >
               <Eye className="w-3.5 h-3.5 text-muted-foreground" />
               Reveal All
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleResetDefaults}
-              className="text-xs gap-1.5 h-8 bg-card/60 hover:bg-muted"
-              title="Reset default sample cards"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
-              Reset Deck
             </Button>
           </div>
         </div>
@@ -506,7 +479,7 @@ export function CardsScreen() {
             <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
               {currentCards.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground text-sm">
-                  No cards in this deck yet. Type an entry above or click "Reset Deck" to load sample cards.
+                  No cards in this deck yet. Type an entry above or click &quot;Bulk Paste&quot; to add cards.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
