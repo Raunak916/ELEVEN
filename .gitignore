@@ -55,4 +55,8 @@ next-env.d.ts
 /mar.json
 /pel.json
 
+# documentation files ignored per user preference
+decision.md
+flow.md
+
 
