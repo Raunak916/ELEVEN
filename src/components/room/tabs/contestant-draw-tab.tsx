@@ -141,15 +141,15 @@ export function ContestantDrawTab() {
               </span>
             </div>
 
-            {/* Side-by-Side 2-Card Layout (Matching comp-1-new.png) */}
-            <div className="w-full flex flex-col md:flex-row items-center justify-center gap-3.5 sm:gap-5 xl:gap-7 max-w-4xl mx-auto">
+            {/* Side-by-Side 2-Card Layout (Responsive for 15" Laptops & 24" Monitors) */}
+            <div className="w-full flex flex-col md:flex-row items-stretch justify-center gap-3.5 sm:gap-4 xl:gap-5 max-w-3xl mx-auto">
               
               {/* =================================================================== */}
-              {/* LEFT CARD: Tall Rectangle Player Portrait & Details Card           */}
+              {/* LEFT CARD: Rectangle Player Portrait & Details Card                 */}
               {/* =================================================================== */}
               <div
                 className={cn(
-                  'w-full max-w-[260px] sm:max-w-[290px] xl:max-w-[330px] rounded-[24px] xl:rounded-[28px] p-[2px] bg-gradient-to-b shadow-xl transition-all duration-300 overflow-hidden shrink-0',
+                  'w-full md:w-1/2 max-w-[320px] rounded-[22px] xl:rounded-[26px] p-[2px] bg-gradient-to-b shadow-xl transition-all duration-300 overflow-hidden shrink-0 mx-auto md:mx-0 flex flex-col',
                   isAssigned
                     ? isMyTeamWinner
                       ? 'from-emerald-400 via-emerald-600 to-emerald-950 shadow-[0_0_30px_rgba(16,185,129,0.3)]'
@@ -159,9 +159,9 @@ export function ContestantDrawTab() {
                     : roleStyle?.borderGradient || 'from-[var(--gold)] via-amber-500/50 to-black'
                 )}
               >
-                <div className="w-full h-full rounded-[22px] xl:rounded-[26px] bg-gradient-to-b from-[#141a24]/98 via-[#0c0f15]/98 to-[#07090d]/98 backdrop-blur-3xl p-3.5 sm:p-4 xl:p-5 border border-white/15 flex flex-col justify-between">
-                  {/* Tall Player Photo Box */}
-                  <div className="relative aspect-[3/3.5] w-full rounded-xl xl:rounded-2xl overflow-hidden bg-black/80 border border-white/10 shadow-inner group">
+                <div className="w-full h-full rounded-[20px] xl:rounded-[24px] bg-gradient-to-b from-[#141a24]/98 via-[#0c0f15]/98 to-[#07090d]/98 backdrop-blur-3xl p-3.5 sm:p-4 xl:p-4.5 border border-white/15 flex flex-col justify-between">
+                  {/* Fluid Player Photo Box */}
+                  <div className="relative h-[155px] sm:h-[175px] xl:h-[195px] w-full rounded-xl xl:rounded-2xl overflow-hidden bg-black/80 border border-white/10 shadow-inner group shrink-0">
                     {displayPlayer.player.photo ? (
                       <Image
                         src={displayPlayer.player.photo}
@@ -174,7 +174,7 @@ export function ContestantDrawTab() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-black text-muted-foreground">
-                        <Users className="w-16 h-16 xl:w-20 xl:h-20 opacity-30" />
+                        <Users className="w-14 h-14 xl:w-16 xl:h-16 opacity-30" />
                       </div>
                     )}
 
@@ -182,12 +182,12 @@ export function ContestantDrawTab() {
                   </div>
 
                   {/* Player Metadata (Club, Name, Country, Position) */}
-                  <div className="mt-2.5 xl:mt-3 space-y-0.5">
+                  <div className="mt-2 xl:mt-2.5 space-y-0.5">
                     <span className="text-[11px] sm:text-xs font-mono font-black uppercase tracking-wider text-[var(--gold)] block truncate drop-shadow">
                       {displayPlayer.player.team || 'Free Agent'}
                     </span>
 
-                    <h3 className="text-lg sm:text-xl xl:text-2xl font-heading font-black text-white truncate tracking-tight drop-shadow-md">
+                    <h3 className="text-base sm:text-lg xl:text-xl font-heading font-black text-white truncate tracking-tight drop-shadow-md">
                       {displayPlayer.player.name}
                     </h3>
 
@@ -222,24 +222,24 @@ export function ContestantDrawTab() {
               {/* =================================================================== */}
               {/* RIGHT CARD: 3D Vertical Flip Price & Ownership Card                 */}
               {/* =================================================================== */}
-              <div className="w-full max-w-[270px] sm:max-w-[310px] xl:max-w-[360px] h-[210px] sm:h-[235px] xl:h-[260px] perspective-[1200px] select-none shrink-0">
+              <div className="w-full md:w-1/2 max-w-[320px] min-h-[220px] sm:min-h-[240px] xl:min-h-[265px] perspective-[1200px] select-none shrink-0 mx-auto md:mx-0 flex flex-col">
                 <motion.div
                   animate={{ rotateX: isAssigned ? 180 : 0 }}
                   transition={{ type: 'spring', stiffness: 180, damping: 18 }}
-                  className="w-full h-full relative [transform-style:preserve-3d]"
+                  className="w-full h-full relative [transform-style:preserve-3d] flex-1 flex flex-col"
                 >
                   {/* ---------------------------------------------------------------- */}
                   {/* FRONT FACE: Active Bidding / Base Price Phase (rotateX = 0deg)  */}
                   {/* ---------------------------------------------------------------- */}
                   <div
                     className={cn(
-                      'absolute inset-0 rounded-[24px] xl:rounded-[28px] p-[2px] bg-gradient-to-b shadow-xl transition-all duration-300 overflow-hidden [backface-visibility:hidden]',
+                      'absolute inset-0 rounded-[22px] xl:rounded-[26px] p-[2px] bg-gradient-to-b shadow-xl transition-all duration-300 overflow-hidden [backface-visibility:hidden]',
                       isUnsold
                         ? 'from-red-500/60 via-zinc-800 to-black'
                         : 'from-white/20 via-white/5 to-black'
                     )}
                   >
-                    <div className="w-full h-full rounded-[22px] xl:rounded-[26px] bg-gradient-to-b from-[#141a24]/98 via-[#0c0f15]/98 to-[#07090d]/98 backdrop-blur-3xl p-4 sm:p-5 xl:p-6 border border-white/15 flex flex-col justify-between">
+                    <div className="w-full h-full rounded-[20px] xl:rounded-[24px] bg-gradient-to-b from-[#141a24]/98 via-[#0c0f15]/98 to-[#07090d]/98 backdrop-blur-3xl p-4 sm:p-5 xl:p-5.5 border border-white/15 flex flex-col justify-between">
                       {/* Top Row */}
                       <div className="flex items-center justify-between gap-2">
                         {roleStyle ? (
@@ -275,7 +275,7 @@ export function ContestantDrawTab() {
                         <span className="block text-[10px] xl:text-xs font-mono font-bold uppercase tracking-widest text-[var(--gold)]">
                           BASE PRICE
                         </span>
-                        <span className="text-2xl sm:text-3xl xl:text-4xl font-heading font-black text-foreground tracking-tight block tabular-nums">
+                        <span className="text-2xl sm:text-3xl xl:text-3.5xl font-heading font-black text-foreground tracking-tight block tabular-nums">
                           {formatCurrency(displayPlayer.basePrice, displayPlayer.currency || roomCurrency)}
                         </span>
                       </div>
@@ -297,13 +297,13 @@ export function ContestantDrawTab() {
                   {/* ---------------------------------------------------------------- */}
                   <div
                     className={cn(
-                      'absolute inset-0 rounded-[24px] xl:rounded-[28px] p-[2px] bg-gradient-to-b shadow-xl overflow-hidden [backface-visibility:hidden] [transform:rotateX(180deg)]',
+                      'absolute inset-0 rounded-[22px] xl:rounded-[26px] p-[2px] bg-gradient-to-b shadow-xl overflow-hidden [backface-visibility:hidden] [transform:rotateX(180deg)]',
                       isMyTeamWinner
                         ? 'from-emerald-400 via-emerald-600 to-emerald-950 shadow-[0_0_35px_rgba(16,185,129,0.35)]'
                         : 'from-[var(--gold)] via-amber-600 to-amber-950 shadow-[0_0_35px_rgba(234,179,8,0.3)]'
                     )}
                   >
-                    <div className="w-full h-full rounded-[22px] xl:rounded-[26px] bg-gradient-to-b from-[#141a24]/98 via-[#0c0f15]/98 to-[#07090d]/98 backdrop-blur-3xl p-4 sm:p-5 xl:p-6 border border-white/20 flex flex-col justify-between">
+                    <div className="w-full h-full rounded-[20px] xl:rounded-[24px] bg-gradient-to-b from-[#141a24]/98 via-[#0c0f15]/98 to-[#07090d]/98 backdrop-blur-3xl p-4 sm:p-5 xl:p-5.5 border border-white/20 flex flex-col justify-between">
                       {/* Top Row: Role & Result Pill */}
                       <div className="flex items-center justify-between gap-2">
                         <span
@@ -339,14 +339,14 @@ export function ContestantDrawTab() {
                         <div className="flex items-center justify-center gap-1.5">
                           <Shield className={cn("w-4 h-4 shrink-0", isMyTeamWinner ? "text-emerald-400" : "text-[var(--gold)]")} />
                           <h4 className={cn(
-                            "text-base sm:text-lg xl:text-xl font-heading font-black tracking-tight truncate max-w-[220px]",
+                            "text-base sm:text-lg xl:text-xl font-heading font-black tracking-tight truncate max-w-[200px]",
                             isMyTeamWinner ? "text-emerald-300" : "text-[var(--gold)]"
                           )}>
                             {assignedTeam?.name || 'Club'}
                           </h4>
                         </div>
 
-                        <span className="text-2xl sm:text-3xl xl:text-4xl font-heading font-black text-white tracking-tight block tabular-nums mt-0.5">
+                        <span className="text-2xl sm:text-3xl xl:text-3.5xl font-heading font-black text-white tracking-tight block tabular-nums mt-0.5">
                           {formatCurrency(
                             displayPlayer.soldPrice !== null && displayPlayer.soldPrice !== undefined
                               ? displayPlayer.soldPrice

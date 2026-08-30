@@ -71,7 +71,7 @@ export function ContestantPlaceholder() {
   }
 
   return (
-    <main className="min-h-screen xl:h-screen xl:max-h-screen overflow-y-auto xl:overflow-hidden w-full flex flex-col bg-[#050608] text-foreground select-none relative p-3 sm:p-4 lg:p-5 transition-colors scrollbar-thin">
+    <main className="min-h-screen 2xl:h-screen 2xl:max-h-screen overflow-y-auto 2xl:overflow-hidden w-full flex flex-col bg-[#050608] text-foreground select-none relative p-3 sm:p-4 lg:p-5 transition-colors scrollbar-thin">
       {/* Dynamic Ambient Mesh Glow */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-40 left-1/4 -translate-x-1/2 w-[45rem] h-[45rem] bg-gradient-to-tr from-[var(--gold)]/10 via-amber-500/5 to-transparent rounded-full blur-[140px] opacity-80" />
