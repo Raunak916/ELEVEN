@@ -8,7 +8,29 @@ import { PLAYERS } from './players-data';
 // Re-export Player for compatibility
 export type { Player };
 
-const DB_PATH = join(process.cwd(), 'data', 'players.db');
+function findDatabaseFile(): string | null {
+  const candidates = [
+    join(process.cwd(), 'data', 'players.db'),
+    join(process.cwd(), '..', 'data', 'players.db'),
+    join(__dirname, 'data', 'players.db'),
+    join(__dirname, '..', 'data', 'players.db'),
+    join(__dirname, '..', '..', 'data', 'players.db'),
+    join(__dirname, '..', '..', '..', 'data', 'players.db'),
+    join('/var/task', 'data', 'players.db'),
+    join('/var/task', 'players.db'),
+  ];
+
+  for (const p of candidates) {
+    try {
+      if (existsSync(p)) {
+        return p;
+      }
+    } catch {
+      // Continue
+    }
+  }
+  return null;
+}
 
 let dbInstance: Database.Database | null = null;
 
@@ -16,18 +38,15 @@ export function getPlayerDB(): Database.Database {
   if (dbInstance) return dbInstance;
 
   // 1. Try opening existing DB in readonly mode (Vercel Serverless safe)
-  try {
-    if (existsSync(DB_PATH)) {
-      try {
-        const db = new Database(DB_PATH, { readonly: true, fileMustExist: true });
-        dbInstance = db;
-        return db;
-      } catch (roErr) {
-        console.warn('Readonly DB connection failed, creating in-memory fallback:', roErr);
-      }
+  const dbPath = findDatabaseFile();
+  if (dbPath) {
+    try {
+      const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+      dbInstance = db;
+      return db;
+    } catch (roErr) {
+      console.warn(`Readonly DB connection to ${dbPath} failed, creating in-memory fallback:`, roErr);
     }
-  } catch (fsErr) {
-    console.warn('FS check error, creating in-memory fallback:', fsErr);
   }
 
   // 2. In-Memory fallback database for Serverless / Cloud environments
