@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRoomStore } from '@/lib/room-store';
 import { useAuctionStore } from '@/lib/auction-store';
 import { useHydrated } from '@/lib/use-hydrated';
@@ -8,30 +8,28 @@ import { useHydrated } from '@/lib/use-hydrated';
 export function RoomContestantPoller() {
   const activeSession = useRoomStore((state) => state.activeSession);
   const hydrated = useHydrated();
-  const isPollingRef = useRef(false);
 
   useEffect(() => {
     if (!hydrated) return;
     if (!activeSession || activeSession.role !== 'CONTESTANT' || !activeSession.roomCode) return;
 
     const roomCode = activeSession.roomCode;
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
 
     const pollRoomState = async () => {
-      if (isPollingRef.current) return;
-      isPollingRef.current = true;
+      if (!isMounted) return;
       try {
-        const res = await fetch(`/api/rooms?code=${encodeURIComponent(roomCode)}`);
-        if (!res.ok) {
-          isPollingRef.current = false;
-          return;
-        }
+        const res = await fetch(`/api/rooms?code=${encodeURIComponent(roomCode)}`, {
+          signal: AbortSignal.timeout(3500),
+          cache: 'no-store',
+        });
+
+        if (!res.ok || !isMounted) return;
 
         const data = await res.json();
         const room = data.room;
-        if (!room) {
-          isPollingRef.current = false;
-          return;
-        }
+        if (!room || !isMounted) return;
 
         // 1. Sync live draw player state with full field comparison
         const serverDraw = room.currentDraw;
@@ -85,7 +83,7 @@ export function RoomContestantPoller() {
             createdAt: p.joinedAt || new Date().toISOString(),
             otherExpenses: [],
           }));
-          useAuctionStore.setState({ teams: roomTeams, auctionPlayers: [] });
+          useAuctionStore.setState({ teams: roomTeams });
         }
 
         // 3. Sync room currency / max budget settings
@@ -143,7 +141,7 @@ export function RoomContestantPoller() {
           }
         }
 
-        // 4. Sync room status (e.g. COMPLETED)
+        // 5. Sync room status (e.g. COMPLETED or LIVE)
         if (room.status) {
           const currentSession = useRoomStore.getState().activeSession;
           if (currentSession && currentSession.status !== room.status) {
@@ -158,17 +156,14 @@ export function RoomContestantPoller() {
       } catch (err) {
         console.warn('Contestant room poll warning:', err);
       } finally {
-        isPollingRef.current = false;
+        if (isMounted) {
+          timer = setTimeout(pollRoomState, 450);
+        }
       }
     };
 
-    // Initial immediate poll
     pollRoomState();
 
-    // High-frequency polling (300ms) for real-time live sync across devices
-    const interval = setInterval(pollRoomState, 300);
-
-    // Instant sync when phone screen is turned on or tab gains focus
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         pollRoomState();
@@ -178,7 +173,8 @@ export function RoomContestantPoller() {
     window.addEventListener('focus', handleVisibilityChange);
 
     return () => {
-      clearInterval(interval);
+      isMounted = false;
+      clearTimeout(timer);
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleVisibilityChange);
     };

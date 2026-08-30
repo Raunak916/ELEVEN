@@ -11,23 +11,38 @@ export function RoomHostPoller() {
   const createdCode = useRoomStore((state) => state.createdCode);
   const syncHostedRoomParticipants = useRoomStore((state) => state.syncHostedRoomParticipants);
   const hydrated = useHydrated();
-  const isSyncingRef = useRef(false);
 
-  // Sync connected contestants to host teams list
+  const drawnPlayer = useAuctionStore((state) => state.drawnPlayer);
+  const drawPhase = useAuctionStore((state) => state.drawPhase);
+  const teams = useAuctionStore((state) => state.teams);
+  const auctionPlayers = useAuctionStore((state) => state.auctionPlayers);
+  const settings = useAuctionStore((state) => state.settings);
+
+  const drawnPlayerRef = useRef(drawnPlayer);
+  drawnPlayerRef.current = drawnPlayer;
+  const drawPhaseRef = useRef(drawPhase);
+  drawPhaseRef.current = drawPhase;
+  const teamsRef = useRef(teams);
+  teamsRef.current = teams;
+  const auctionPlayersRef = useRef(auctionPlayers);
+  auctionPlayersRef.current = auctionPlayers;
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  // 1. Participant Sync Heartbeat (Pulls contestants into host teams list)
   useEffect(() => {
     if (!hydrated) return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
     const syncParticipants = async () => {
-      if (isSyncingRef.current) return;
-      isSyncingRef.current = true;
+      if (!isMounted) return;
       try {
         const participants = await syncHostedRoomParticipants();
-        if (!participants || participants.length === 0) {
-          isSyncingRef.current = false;
-          return;
-        }
+        if (!participants || !isMounted) return;
 
         const currentTeams = useAuctionStore.getState().teams;
         let hasChanges = false;
@@ -69,59 +84,70 @@ export function RoomHostPoller() {
       } catch (err) {
         console.warn('Host room participant sync warning:', err);
       } finally {
-        isSyncingRef.current = false;
+        if (isMounted) {
+          timer = setTimeout(syncParticipants, 600);
+        }
       }
     };
 
-    // Initial immediate sync
     syncParticipants();
-
-    // High-frequency polling (350ms) for live contestants joining the room
-    const interval = setInterval(syncParticipants, 350);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [hydrated, hostedRoom?.code, createdCode, syncHostedRoomParticipants]);
 
-  // Host: Broadcast current draw state to room
-  const drawnPlayer = useAuctionStore((state) => state.drawnPlayer);
-  const drawPhase = useAuctionStore((state) => state.drawPhase);
-
+  // 2. Broadcast Drawn Player (Immediate on change + 1.2s heartbeat)
   useEffect(() => {
     if (!hydrated) return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
     const broadcastDraw = async () => {
+      if (!isMounted) return;
       try {
         await fetch('/api/rooms/draw', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code: roomCode,
-            drawnPlayer: drawnPlayer || null,
-            drawPhase: drawPhase || 'idle',
+            drawnPlayer: drawnPlayerRef.current || null,
+            drawPhase: drawPhaseRef.current || 'idle',
           }),
+          signal: AbortSignal.timeout(3000),
         });
       } catch (err) {
         console.warn('Failed to broadcast draw state:', err);
+      } finally {
+        if (isMounted) {
+          timer = setTimeout(broadcastDraw, 1200);
+        }
       }
     };
 
     broadcastDraw();
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [hydrated, hostedRoom?.code, createdCode, drawnPlayer, drawPhase]);
 
-  // Host: Broadcast teams, expenses, and assigned roster players to room
-  const teams = useAuctionStore((state) => state.teams);
-  const auctionPlayers = useAuctionStore((state) => state.auctionPlayers);
-  const settings = useAuctionStore((state) => state.settings);
-
+  // 3. Broadcast Roster & Teams (Immediate on change + 2s heartbeat)
   useEffect(() => {
     if (!hydrated) return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
     const broadcastRoster = async () => {
+      if (!isMounted) return;
       try {
-        const assignedPlayers = auctionPlayers.filter(
+        const assignedPlayers = auctionPlayersRef.current.filter(
           (p) =>
             p.status === 'UNSOLD' ||
             p.status === 'DRAWN' ||
@@ -133,29 +159,42 @@ export function RoomHostPoller() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code: roomCode,
-            teams,
+            teams: teamsRef.current,
             assignedPlayers,
             settings: {
-              currency: settings.currency,
-              maxTeamBudget: settings.maxTeamBudget,
+              currency: settingsRef.current.currency,
+              maxTeamBudget: settingsRef.current.maxTeamBudget,
             },
           }),
+          signal: AbortSignal.timeout(3500),
         });
       } catch (err) {
         console.warn('Failed to broadcast roster state:', err);
+      } finally {
+        if (isMounted) {
+          timer = setTimeout(broadcastRoster, 2000);
+        }
       }
     };
 
     broadcastRoster();
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [hydrated, hostedRoom?.code, createdCode, teams, auctionPlayers, settings]);
 
-  // Host: Broadcast cards state to room on interval and on changes
+  // 4. Broadcast Cards State (Every 3s)
   useEffect(() => {
     if (!hydrated) return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
     const broadcastCards = async () => {
+      if (!isMounted) return;
       try {
         const powerStr = localStorage.getItem('football-auction-power-cards-v2');
         const sickStr = localStorage.getItem('football-auction-sick-cards-v2');
@@ -170,13 +209,20 @@ export function RoomHostPoller() {
             powerCards,
             sickCards,
           }),
+          signal: AbortSignal.timeout(3000),
         });
-      } catch {}
+      } catch {} finally {
+        if (isMounted) {
+          timer = setTimeout(broadcastCards, 3000);
+        }
+      }
     };
 
     broadcastCards();
-    const interval = setInterval(broadcastCards, 2000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [hydrated, hostedRoom?.code, createdCode]);
 
   return null;
