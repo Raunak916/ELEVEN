@@ -86,6 +86,7 @@ interface RoomRow {
   settings_json?: string;
   current_draw_json?: string;
   roster_state_json?: string;
+  cards_state_json?: string;
   participants_json: string;
   created_at: string;
   updated_at: string;

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRoomStore } from '@/lib/room-store';
 import { useAuctionStore } from '@/lib/auction-store';
-import { formatCurrency, ROLE_COLORS, CATEGORY_COLORS, cn } from '@/lib/utils';
+import { formatCurrency, ROLE_DRAW_STYLES, CATEGORY_COLORS, cn } from '@/lib/utils';
 import {
   Trophy,
   Shield,
@@ -412,11 +412,7 @@ export function ContestantAuctionSummaryScreen() {
                   </div>
                 ) : (
                   selectedTeamData?.players?.map((p, i) => {
-                    const roleStyle = ROLE_COLORS[p.role] || {
-                      pillBg: 'bg-amber-500/20',
-                      pillText: 'text-amber-300',
-                      pillBorder: 'border-amber-500/40',
-                    };
+                    const roleStyle = ROLE_DRAW_STYLES[p.role as PlayerRole] || ROLE_DRAW_STYLES.Midfielder;
 
                     return (
                       <div

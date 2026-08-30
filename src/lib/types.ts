@@ -129,6 +129,51 @@ export const ROLE_COLORS: Record<PlayerRole, string> = {
   Forward: 'oklch(0.6 0.22 25)',
 };
 
+export const ROLE_DRAW_STYLES: Record<
+  PlayerRole,
+  {
+    borderGradient: string;
+    glowColor: string;
+    pillBg: string;
+    pillText: string;
+    pillBorder: string;
+    accentGlow: string;
+  }
+> = {
+  Forward: {
+    borderGradient: 'from-rose-500/85 via-red-500/65 to-red-800/85',
+    glowColor: 'rgba(239, 68, 68, 0.45)',
+    pillBg: 'bg-rose-500/20',
+    pillText: 'text-rose-400',
+    pillBorder: 'border-rose-500/40',
+    accentGlow: 'shadow-[0_0_40px_rgba(239,68,68,0.35)]',
+  },
+  Midfielder: {
+    borderGradient: 'from-emerald-400/85 via-green-500/65 to-emerald-800/85',
+    glowColor: 'rgba(34, 197, 94, 0.45)',
+    pillBg: 'bg-emerald-500/20',
+    pillText: 'text-emerald-400',
+    pillBorder: 'border-emerald-500/40',
+    accentGlow: 'shadow-[0_0_40px_rgba(34,197,94,0.35)]',
+  },
+  Defender: {
+    borderGradient: 'from-amber-400/85 via-yellow-500/65 to-amber-700/85',
+    glowColor: 'rgba(245, 158, 11, 0.45)',
+    pillBg: 'bg-amber-500/20',
+    pillText: 'text-amber-400',
+    pillBorder: 'border-amber-500/40',
+    accentGlow: 'shadow-[0_0_40px_rgba(245,158,11,0.35)]',
+  },
+  Goalkeeper: {
+    borderGradient: 'from-sky-400/85 via-blue-500/65 to-blue-800/85',
+    glowColor: 'rgba(59, 130, 246, 0.45)',
+    pillBg: 'bg-sky-500/20',
+    pillText: 'text-sky-400',
+    pillBorder: 'border-sky-500/40',
+    accentGlow: 'shadow-[0_0_40px_rgba(59,130,246,0.35)]',
+  },
+};
+
 export const CATEGORY_LABELS: Record<PlayerCategory, string> = {
   LEGEND: 'LEGEND',
   ICON: 'ICON',

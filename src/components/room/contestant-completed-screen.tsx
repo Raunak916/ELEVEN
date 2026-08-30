@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useRoomStore } from '@/lib/room-store';
 import { useAuctionStore } from '@/lib/auction-store';
-import { formatCurrency, ROLE_COLORS, CATEGORY_COLORS, cn } from '@/lib/utils';
+import { formatCurrency, ROLE_DRAW_STYLES, CATEGORY_COLORS, cn } from '@/lib/utils';
 import { Trophy, Shield, Sparkles, ArrowRight, LogOut, Award, Users, CheckCircle2, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
-import { Currency } from '@/lib/types';
+import { Currency, PlayerRole } from '@/lib/types';
 import { firePlayerRevealConfetti } from '@/lib/confetti';
 
 export function ContestantCompletedScreen({ onDismiss }: { onDismiss?: () => void }) {
@@ -234,11 +234,7 @@ export function ContestantCompletedScreen({ onDismiss }: { onDismiss?: () => voi
             ) : (
               <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1.5 scrollbar-thin">
                 {myPlayers.map((player, idx) => {
-                  const roleStyle = ROLE_COLORS[player.role] || {
-                    pillBg: 'bg-amber-500/20',
-                    pillText: 'text-amber-300',
-                    pillBorder: 'border-amber-500/40',
-                  };
+                  const roleStyle = ROLE_DRAW_STYLES[player.role as PlayerRole] || ROLE_DRAW_STYLES.Midfielder;
                   return (
                     <div
                       key={player.id}

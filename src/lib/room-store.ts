@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { ActiveRoomSession, Room, RoomStatus } from './room-types';
+import { ActiveRoomSession, Room, RoomParticipant, RoomStatus } from './room-types';
 
 interface RoomState {
   // Active session when user has joined another person's room

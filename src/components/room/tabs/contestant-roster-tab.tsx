@@ -5,9 +5,9 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuctionStore } from '@/lib/auction-store';
 import { useRoomStore } from '@/lib/room-store';
-import { formatCurrency, ROLE_COLORS, cn } from '@/lib/utils';
+import { formatCurrency, ROLE_DRAW_STYLES, cn } from '@/lib/utils';
 import { Users, Receipt, Shield, Sparkles } from 'lucide-react';
-import { Currency } from '@/lib/types';
+import { Currency, PlayerRole } from '@/lib/types';
 
 export function ContestantRosterTab() {
   const { auctionPlayers, teams, settings } = useAuctionStore();
@@ -69,13 +69,7 @@ export function ContestantRosterTab() {
                   player.id.startsWith('auction-mystery-')
                 );
                 const soldPrice = player.soldPrice ?? player.basePrice;
-                const roleStyle = ROLE_COLORS[player.role] || {
-                  borderGradient: 'from-amber-400 to-amber-600',
-                  accentGlow: 'shadow-amber-500/20',
-                  pillBg: 'bg-amber-500/20',
-                  pillText: 'text-amber-300',
-                  pillBorder: 'border-amber-500/40',
-                };
+                const roleStyle = ROLE_DRAW_STYLES[player.role as PlayerRole] || ROLE_DRAW_STYLES.Midfielder;
 
                 return (
                   <motion.div

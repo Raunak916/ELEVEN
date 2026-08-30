@@ -5,9 +5,9 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuctionStore } from '@/lib/auction-store';
 import { useRoomStore } from '@/lib/room-store';
-import { formatCurrency, ROLE_COLORS, CATEGORY_COLORS, cn } from '@/lib/utils';
+import { formatCurrency, ROLE_DRAW_STYLES, CATEGORY_COLORS, cn } from '@/lib/utils';
 import { Sparkles, Check, Ban, Globe, Users, Shield, Trophy } from 'lucide-react';
-import { Currency } from '@/lib/types';
+import { Currency, PlayerRole, PlayerCategory } from '@/lib/types';
 
 export function ContestantDrawTab() {
   const { drawnPlayer, drawPhase, teams, settings, auctionPlayers } = useAuctionStore();
@@ -48,22 +48,18 @@ export function ContestantDrawTab() {
   const isMyTeamWinner = isAssigned && displayPlayer?.teamId === activeSession?.participantId;
   const isUnsold = displayPlayer?.status === 'UNSOLD';
 
-  const roleStyle = displayPlayer?.player.role
-    ? ROLE_COLORS[displayPlayer.player.role] || {
-        borderGradient: 'from-amber-400 to-amber-600',
-        accentGlow: 'shadow-amber-500/20',
-        pillBg: 'bg-amber-500/20',
-        pillText: 'text-amber-300',
-        pillBorder: 'border-amber-500/40',
-      }
+  const roleStyle = displayPlayer?.player?.role
+    ? ROLE_DRAW_STYLES[displayPlayer.player.role as PlayerRole] || ROLE_DRAW_STYLES.Midfielder
     : null;
 
-  const categoryStyle = displayPlayer?.player.category
-    ? CATEGORY_COLORS[displayPlayer.player.category] || {
-        border: 'border-zinc-500/40',
-        bg: 'bg-zinc-500/10',
-        text: 'text-zinc-300',
-      }
+  const categoryStyle = displayPlayer?.player?.category
+    ? (CATEGORY_COLORS as Record<string, string>)[displayPlayer.player.category]
+      ? {
+          border: 'border-zinc-500/40',
+          bg: 'bg-zinc-500/10',
+          text: 'text-zinc-300',
+        }
+      : null
     : null;
 
   return (
@@ -273,7 +269,7 @@ export function ContestantDrawTab() {
                       {/* Bottom Footer */}
                       <div className="pt-2 xl:pt-2.5 border-t border-white/10 flex items-center justify-between">
                         <span className="text-[10px] xl:text-xs font-mono text-muted-foreground">
-                          {drawPhase === 'drawing' ? 'Drawing...' : 'Live Bidding Active'}
+                          {drawPhase === 'cycling' || drawPhase === 'revealing' ? 'Drawing...' : 'Live Bidding Active'}
                         </span>
                         <span className="text-[10px] xl:text-xs font-mono text-muted-foreground uppercase">
                           {displayPlayer.currency || roomCurrency}
