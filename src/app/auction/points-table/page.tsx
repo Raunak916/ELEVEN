@@ -31,8 +31,10 @@ import {
   History,
   Clock,
   CircleDollarSign,
+  Radio,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRoomStore } from '@/lib/room-store';
 import {
   Drawer,
   DrawerContent,
@@ -85,6 +87,9 @@ export default function PointsTablePage() {
     updateTeamExpense,
   } = useAuctionStore();
   const hydrated = useHydrated();
+  const hostedRoom = useRoomStore((state) => state.hostedRoom);
+  const createdCode = useRoomStore((state) => state.createdCode);
+  const currentRoomCode = hostedRoom?.code || createdCode;
 
   const pointsData = hydrated ? getPointsTableData() : [];
   const teams = hydrated ? getTeams() : [];
@@ -397,11 +402,35 @@ export default function PointsTablePage() {
           >
             <Card className="glass overflow-hidden border-sidebar-border shadow-2xl">
               <CardHeader className="border-b border-border/40 py-5 px-8">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-                    <Trophy className="w-6 h-6 text-primary" />
-                    Tournament Standings
-                  </CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+                      <Trophy className="w-6 h-6 text-primary" />
+                      Tournament Standings
+                    </CardTitle>
+                    {currentRoomCode && (
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-xs sm:text-sm font-black tracking-wider uppercase shadow-sm',
+                          hostedRoom?.status === 'COMPLETED'
+                            ? 'bg-[var(--gold)]/15 border border-[var(--gold)]/30 text-[var(--gold)]'
+                            : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                        )}
+                      >
+                        {hostedRoom?.status === 'COMPLETED' ? (
+                          <>
+                            <Trophy className="w-3.5 h-3.5 text-[var(--gold)]" />
+                            <span>ROOM: {currentRoomCode} (COMPLETED)</span>
+                          </>
+                        ) : (
+                          <>
+                            <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+                            <span>ROOM: {currentRoomCode} (LIVE)</span>
+                          </>
+                        )}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     {pointsData.length} Teams Competing
                   </span>

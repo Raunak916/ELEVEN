@@ -1,0 +1,38 @@
+import { NextResponse } from 'next/server';
+import { getRoomParticipants, getRoomByCode } from '@/lib/room-db';
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ code: string }> }
+) {
+  try {
+    const { code } = await params;
+    if (!code) {
+      return NextResponse.json(
+        { success: false, error: 'Room code is required' },
+        { status: 400 }
+      );
+    }
+
+    const room = getRoomByCode(code);
+    if (!room) {
+      return NextResponse.json(
+        { success: false, error: 'Room not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      roomCode: room.code,
+      status: room.status,
+      participants: room.participants,
+    });
+  } catch (error) {
+    console.error('Failed to get room participants:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch participants' },
+      { status: 500 }
+    );
+  }
+}

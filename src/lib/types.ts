@@ -48,6 +48,7 @@ export interface AuctionSettings {
 export interface AuctionSnapshot {
   id: string;
   auctionId: string;
+  roomCode?: string;
   name: string;
   completedAt: string;
   settings: AuctionSettings;
@@ -158,14 +159,20 @@ export const CURRENCY_LOCALES: Record<Currency, string> = {
   GBP: 'en-GB',
 };
 
-export function formatCurrency(amount: number, currency: Currency): string {
-  const locale = CURRENCY_LOCALES[currency];
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount).replace(/[A-Z]{3}/, '').trim();
+export function formatCurrency(amount: number, currency?: Currency | string): string {
+  const safeCurrency = (currency && CURRENCY_LOCALES[currency as Currency] ? currency : 'INR') as Currency;
+  const locale = CURRENCY_LOCALES[safeCurrency] || 'en-IN';
+  const num = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: safeCurrency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num).replace(/[A-Z]{3}/, '').trim();
+  } catch {
+    return `${safeCurrency} ${num.toLocaleString()}`;
+  }
 }
 
 export function getPositionLabel(position: PlayerPosition): string {
@@ -189,3 +196,5 @@ export function getPositionLabel(position: PlayerPosition): string {
 export function getRoleFromPosition(position: PlayerPosition): PlayerRole {
   return POSITION_TO_ROLE[position];
 }
+
+export * from './room-types';

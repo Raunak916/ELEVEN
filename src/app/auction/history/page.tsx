@@ -93,6 +93,11 @@ export default function HistoryPage() {
                         <h3 className="font-heading text-lg font-semibold text-foreground truncate">
                           {auction.name}
                         </h3>
+                        {auction.roomCode && (
+                          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20 uppercase tracking-wider">
+                            ROOM: {auction.roomCode}
+                          </span>
+                        )}
                         <span className="text-xs font-medium px-2 py-1 rounded-full bg-muted/50 text-muted-foreground whitespace-nowrap">
                           {format(new Date(auction.completedAt), 'dd MMMM yyyy')}
                         </span>

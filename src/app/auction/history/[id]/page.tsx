@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 interface AuctionSnapshot {
   id: string;
   auctionId: string;
+  roomCode?: string;
   name: string;
   completedAt: string;
   settings: {
@@ -49,6 +50,9 @@ export function generateAuctionHistoryText(auction: AuctionSnapshot): string {
 
   let text = `========================================\n`;
   text += `🏆 ${auction.name.toUpperCase()}\n`;
+  if (auction.roomCode) {
+    text += `🔑 Room Code: ${auction.roomCode}\n`;
+  }
   text += `📅 Date: ${dateFormatted}\n`;
   text += `👥 Total Participants: ${auction.totalParticipants}\n`;
   text += `⚽ Total Players Sold: ${auction.totalPlayers}\n`;

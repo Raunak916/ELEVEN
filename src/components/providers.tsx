@@ -3,12 +3,15 @@
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SmoothScrollProvider } from '@/components/providers/smooth-scroll-provider';
+import { RoomModeGuard } from '@/components/room/room-mode-guard';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SmoothScrollProvider>
       <TooltipProvider>
-        {children}
+        <RoomModeGuard>
+          {children}
+        </RoomModeGuard>
         <Toaster
           position="top-right"
           toastOptions={{

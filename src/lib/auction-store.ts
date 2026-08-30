@@ -68,7 +68,7 @@ interface AuctionState {
   setDrawPhase: (phase: AuctionState['drawPhase']) => void;
 
   // History actions
-  completeAuction: () => void;
+  completeAuction: (customName?: string, roomCode?: string) => void;
   getHistory: () => AuctionSnapshot[];
   getAuctionSnapshot: (snapshotId: string) => AuctionSnapshot | undefined;
   removeHistoryItem: (snapshotId: string) => void;
@@ -407,6 +407,9 @@ export const useAuctionStore = create<AuctionState>()(
               ? { ...ap, teamId, soldPrice, soldAt: new Date().toISOString(), status: 'DRAWN' as PlayerStatus }
               : ap
           ),
+          drawnPlayer: state.drawnPlayer?.id === auctionPlayerId
+            ? { ...state.drawnPlayer, teamId, soldPrice, soldAt: new Date().toISOString(), status: 'DRAWN' as PlayerStatus }
+            : state.drawnPlayer,
         }));
       },
 
@@ -428,6 +431,15 @@ export const useAuctionStore = create<AuctionState>()(
                   }
                 : ap
             ),
+            drawnPlayer: state.drawnPlayer && (state.drawnPlayer.playerId === params.mysteryId || state.drawnPlayer.id === `auction-${params.mysteryId}`)
+              ? {
+                  ...state.drawnPlayer,
+                  teamId: params.teamId,
+                  soldPrice: params.soldPrice,
+                  soldAt: new Date().toISOString(),
+                  status: 'DRAWN' as PlayerStatus,
+                }
+              : state.drawnPlayer,
           }));
         } else {
           const newAuctionPlayer: AuctionPlayer = {
@@ -577,7 +589,7 @@ export const useAuctionStore = create<AuctionState>()(
       },
 
       // History actions
-      completeAuction: () => {
+      completeAuction: (customName?: string, roomCode?: string) => {
         set(state => {
           const { auctionPlayers, teams, settings } = state;
 
@@ -610,10 +622,14 @@ export const useAuctionStore = create<AuctionState>()(
           const totalPlayers = auctionPlayers.filter(ap => ap.soldPrice !== null).length;
           const totalParticipants = teams.length;
 
+          const defaultName = roomCode ? `Auction ${roomCode}` : `Auction #${(state.history.length + 1).toString().padStart(2, '0')}`;
+          const snapshotName = customName || defaultName;
+
           const snapshot: AuctionSnapshot = {
             id: uuidv4(),
             auctionId: AUCTION_ID,
-            name: `Auction #${(state.history.length + 1).toString().padStart(2, '0')}`,
+            roomCode: roomCode || undefined,
+            name: snapshotName,
             completedAt: new Date().toISOString(),
             settings: { ...settings },
             participants,

@@ -59,8 +59,10 @@ next-env.d.ts
 decision.md
 flow.md
 
-# SQLite runtime journals
+# SQLite runtime journals and databases
+*.db
 *.db-shm
 *.db-wal
+public/sync-prob-*.png
 
 

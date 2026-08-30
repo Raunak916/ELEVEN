@@ -4,6 +4,8 @@ export interface CustomAuctionCard {
   text: string;
   category: 'power' | 'sick';
   isFlipped?: boolean;
+  assignedTeamId?: string | null;
+  assignedTeamName?: string | null;
 }
 
 export const DEFAULT_POWER_CARDS: CustomAuctionCard[] = [];
