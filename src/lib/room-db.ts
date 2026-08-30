@@ -4,10 +4,24 @@ import { existsSync, mkdirSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { Room, RoomParticipant, RoomStatus } from './room-types';
 
-const DATA_DIR = join(process.cwd(), 'data');
-const DB_PATH = join(DATA_DIR, 'rooms.db');
+// In serverless / Vercel environments, the only writable disk directory is /tmp
+const IS_SERVERLESS = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
+const LOCAL_DATA_DIR = join(process.cwd(), 'data');
+const DB_PATH = IS_SERVERLESS ? '/tmp/rooms.db' : join(LOCAL_DATA_DIR, 'rooms.db');
 
 let dbInstance: Database.Database | null = null;
+
+// Global in-memory cache to guarantee cross-request room availability on warm serverless instances
+declare global {
+  // eslint-disable-next-line no-var
+  var __ACTIVE_ROOMS_CACHE: Map<string, Room> | undefined;
+}
+
+if (!globalThis.__ACTIVE_ROOMS_CACHE) {
+  globalThis.__ACTIVE_ROOMS_CACHE = new Map<string, Room>();
+}
+
+const roomsCache = globalThis.__ACTIVE_ROOMS_CACHE;
 
 // Unambiguous characters for readable, confusion-free room codes (avoiding 0, O, 1, I, L)
 const CODE_CHARSET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -22,6 +36,7 @@ function initSchema(db: Database.Database) {
       settings_json TEXT DEFAULT '{}',
       current_draw_json TEXT DEFAULT NULL,
       roster_state_json TEXT DEFAULT NULL,
+      cards_state_json TEXT DEFAULT NULL,
       participants_json TEXT NOT NULL DEFAULT '[]',
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
@@ -31,7 +46,7 @@ function initSchema(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_rooms_host ON rooms(host_id);
   `);
 
-  // Migration: ensure settings_json, current_draw_json and roster_state_json columns exist
+  // Migration: ensure all columns exist
   try {
     const tableInfo = db.prepare("PRAGMA table_info(rooms)").all() as Array<{ name: string }>;
     const hasSettings = tableInfo.some((col) => col.name === 'settings_json');
@@ -59,8 +74,8 @@ export function getRoomDB(): Database.Database {
   if (dbInstance) return dbInstance;
 
   try {
-    if (!existsSync(DATA_DIR)) {
-      mkdirSync(DATA_DIR, { recursive: true });
+    if (!IS_SERVERLESS && !existsSync(LOCAL_DATA_DIR)) {
+      mkdirSync(LOCAL_DATA_DIR, { recursive: true });
     }
 
     const db = new Database(DB_PATH);
@@ -70,11 +85,20 @@ export function getRoomDB(): Database.Database {
     dbInstance = db;
     return db;
   } catch (err) {
-    console.warn('Failed to open filesystem rooms DB, falling back to memory DB:', err);
-    const db = new Database(':memory:');
-    initSchema(db);
-    dbInstance = db;
-    return db;
+    console.warn(`Failed to open rooms DB at ${DB_PATH}, trying /tmp fallback:`, err);
+    try {
+      const db = new Database('/tmp/rooms.db');
+      db.pragma('journal_mode = WAL');
+      initSchema(db);
+      dbInstance = db;
+      return db;
+    } catch (tmpErr) {
+      console.warn('Falling back to in-memory room DB:', tmpErr);
+      const db = new Database(':memory:');
+      initSchema(db);
+      dbInstance = db;
+      return db;
+    }
   }
 }
 
@@ -139,7 +163,7 @@ function mapRowToRoom(row: RoomRow): Room {
     cardsState = null;
   }
 
-  return {
+  const room: Room = {
     id: row.id,
     code: row.code,
     hostId: row.host_id,
@@ -152,6 +176,12 @@ function mapRowToRoom(row: RoomRow): Room {
     updatedAt: row.updated_at,
     participants,
   };
+
+  // Sync to memory cache
+  roomsCache.set(room.code, room);
+  roomsCache.set(room.id, room);
+
+  return room;
 }
 
 export function generateUniqueRoomCode(length: number = 4): string {
@@ -166,7 +196,7 @@ export function generateUniqueRoomCode(length: number = 4): string {
     }
 
     const exists = checkStmt.get(code);
-    if (!exists) {
+    if (!exists && !roomsCache.has(code)) {
       return code;
     }
   }
@@ -199,7 +229,7 @@ export function createRoom(
 
   stmt.run(id, code, finalHostId, initialStatus, settingsJson, JSON.stringify([]), now, now);
 
-  return {
+  const room: Room = {
     id,
     code,
     hostId: finalHostId,
@@ -209,29 +239,57 @@ export function createRoom(
     updatedAt: now,
     participants: [],
   };
+
+  roomsCache.set(code, room);
+  roomsCache.set(id, room);
+
+  return room;
 }
 
 export function getRoomByCode(code: string): Room | null {
   if (!code) return null;
-  const db = getRoomDB();
   const cleanCode = code.trim().toUpperCase();
 
-  const stmt = db.prepare('SELECT * FROM rooms WHERE code = ? LIMIT 1');
-  const row = stmt.get(cleanCode) as RoomRow | undefined;
+  try {
+    const db = getRoomDB();
+    const stmt = db.prepare('SELECT * FROM rooms WHERE code = ? LIMIT 1');
+    const row = stmt.get(cleanCode) as RoomRow | undefined;
 
-  if (!row) return null;
-  return mapRowToRoom(row);
+    if (row) {
+      return mapRowToRoom(row);
+    }
+  } catch (err) {
+    console.warn(`Error querying room code ${cleanCode}:`, err);
+  }
+
+  // Check memory cache fallback
+  if (roomsCache.has(cleanCode)) {
+    return roomsCache.get(cleanCode) || null;
+  }
+
+  return null;
 }
 
 export function getRoomById(id: string): Room | null {
   if (!id) return null;
-  const db = getRoomDB();
 
-  const stmt = db.prepare('SELECT * FROM rooms WHERE id = ? LIMIT 1');
-  const row = stmt.get(id) as RoomRow | undefined;
+  try {
+    const db = getRoomDB();
+    const stmt = db.prepare('SELECT * FROM rooms WHERE id = ? LIMIT 1');
+    const row = stmt.get(id) as RoomRow | undefined;
 
-  if (!row) return null;
-  return mapRowToRoom(row);
+    if (row) {
+      return mapRowToRoom(row);
+    }
+  } catch (err) {
+    console.warn(`Error querying room id ${id}:`, err);
+  }
+
+  if (roomsCache.has(id)) {
+    return roomsCache.get(id) || null;
+  }
+
+  return null;
 }
 
 export function joinRoom(
@@ -243,7 +301,6 @@ export function joinRoom(
     return { success: false, error: 'Please enter a room code.' };
   }
 
-  const db = getRoomDB();
   const room = getRoomByCode(cleanCode);
 
   if (!room) {
@@ -258,7 +315,7 @@ export function joinRoom(
   const now = new Date().toISOString();
 
   // Check if participant already exists in room
-  const existingParticipant = room.participants.find(p => p.id === participantId);
+  const existingParticipant = room.participants.find((p) => p.id === participantId);
 
   // Also check if team already registered in room.rosterState.teams
   const existingRosterTeam = room.rosterState?.teams?.find((t: any) => t.id === participantId);
@@ -285,7 +342,7 @@ export function joinRoom(
     lastSeenAt: now,
   };
 
-  const existingIdx = room.participants.findIndex(p => p.id === participantId);
+  const existingIdx = room.participants.findIndex((p) => p.id === participantId);
   const updatedParticipants = [...room.participants];
 
   if (existingIdx >= 0) {
@@ -299,19 +356,26 @@ export function joinRoom(
     updatedParticipants.push(newParticipant);
   }
 
-  const updateStmt = db.prepare(`
-    UPDATE rooms
-    SET participants_json = ?, updated_at = ?
-    WHERE id = ?
-  `);
-
-  updateStmt.run(JSON.stringify(updatedParticipants), now, room.id);
+  try {
+    const db = getRoomDB();
+    const updateStmt = db.prepare(`
+      UPDATE rooms
+      SET participants_json = ?, updated_at = ?
+      WHERE id = ?
+    `);
+    updateStmt.run(JSON.stringify(updatedParticipants), now, room.id);
+  } catch (err) {
+    console.warn('Failed to persist join update to SQLite:', err);
+  }
 
   const updatedRoom: Room = {
     ...room,
     participants: updatedParticipants,
     updatedAt: now,
   };
+
+  roomsCache.set(updatedRoom.code, updatedRoom);
+  roomsCache.set(updatedRoom.id, updatedRoom);
 
   return { success: true, room: updatedRoom, participant: newParticipant };
 }
@@ -323,20 +387,33 @@ export function getRoomParticipants(code: string): RoomParticipant[] {
 
 export function leaveRoom(roomId: string, participantId: string): boolean {
   if (!roomId || !participantId) return false;
-  const db = getRoomDB();
   const room = getRoomById(roomId);
   if (!room) return false;
 
   const now = new Date().toISOString();
-  const updatedParticipants = room.participants.filter(p => p.id !== participantId);
+  const updatedParticipants = room.participants.filter((p) => p.id !== participantId);
 
-  const updateStmt = db.prepare(`
-    UPDATE rooms
-    SET participants_json = ?, updated_at = ?
-    WHERE id = ?
-  `);
+  try {
+    const db = getRoomDB();
+    const updateStmt = db.prepare(`
+      UPDATE rooms
+      SET participants_json = ?, updated_at = ?
+      WHERE id = ?
+    `);
+    updateStmt.run(JSON.stringify(updatedParticipants), now, room.id);
+  } catch (err) {
+    console.warn('Failed to persist leave update to SQLite:', err);
+  }
 
-  updateStmt.run(JSON.stringify(updatedParticipants), now, room.id);
+  const updatedRoom: Room = {
+    ...room,
+    participants: updatedParticipants,
+    updatedAt: now,
+  };
+
+  roomsCache.set(updatedRoom.code, updatedRoom);
+  roomsCache.set(updatedRoom.id, updatedRoom);
+
   return true;
 }
 
@@ -345,20 +422,33 @@ export function updateRoomDraw(
   currentDraw: { drawnPlayer: any; drawPhase: string } | null
 ): boolean {
   if (!code) return false;
-  const db = getRoomDB();
   const room = getRoomByCode(code);
   if (!room) return false;
 
   const now = new Date().toISOString();
   const drawJson = currentDraw ? JSON.stringify(currentDraw) : null;
 
-  const stmt = db.prepare(`
-    UPDATE rooms
-    SET current_draw_json = ?, updated_at = ?
-    WHERE id = ?
-  `);
+  try {
+    const db = getRoomDB();
+    const stmt = db.prepare(`
+      UPDATE rooms
+      SET current_draw_json = ?, updated_at = ?
+      WHERE id = ?
+    `);
+    stmt.run(drawJson, now, room.id);
+  } catch (err) {
+    console.warn('Failed to persist draw update to SQLite:', err);
+  }
 
-  stmt.run(drawJson, now, room.id);
+  const updatedRoom: Room = {
+    ...room,
+    currentDraw,
+    updatedAt: now,
+  };
+
+  roomsCache.set(updatedRoom.code, updatedRoom);
+  roomsCache.set(updatedRoom.id, updatedRoom);
+
   return true;
 }
 
@@ -368,45 +458,75 @@ export function updateRoomRoster(
   settings?: { currency: string; maxTeamBudget: number } | null
 ): boolean {
   if (!code) return false;
-  const db = getRoomDB();
   const room = getRoomByCode(code);
   if (!room) return false;
 
   const now = new Date().toISOString();
   const rosterJson = rosterState ? JSON.stringify(rosterState) : null;
 
-  if (settings) {
-    const settingsJson = JSON.stringify(settings);
-    const stmt = db.prepare(`
-      UPDATE rooms
-      SET roster_state_json = ?, settings_json = ?, updated_at = ?
-      WHERE id = ?
-    `);
-    stmt.run(rosterJson, settingsJson, now, room.id);
-  } else {
-    const stmt = db.prepare(`
-      UPDATE rooms
-      SET roster_state_json = ?, updated_at = ?
-      WHERE id = ?
-    `);
-    stmt.run(rosterJson, now, room.id);
+  try {
+    const db = getRoomDB();
+    if (settings) {
+      const settingsJson = JSON.stringify(settings);
+      const stmt = db.prepare(`
+        UPDATE rooms
+        SET roster_state_json = ?, settings_json = ?, updated_at = ?
+        WHERE id = ?
+      `);
+      stmt.run(rosterJson, settingsJson, now, room.id);
+    } else {
+      const stmt = db.prepare(`
+        UPDATE rooms
+        SET roster_state_json = ?, updated_at = ?
+        WHERE id = ?
+      `);
+      stmt.run(rosterJson, now, room.id);
+    }
+  } catch (err) {
+    console.warn('Failed to persist roster update to SQLite:', err);
   }
+
+  const updatedRoom: Room = {
+    ...room,
+    rosterState,
+    settings: settings || room.settings,
+    updatedAt: now,
+  };
+
+  roomsCache.set(updatedRoom.code, updatedRoom);
+  roomsCache.set(updatedRoom.id, updatedRoom);
+
   return true;
 }
 
 export function updateRoomStatus(code: string, status: RoomStatus): boolean {
   if (!code) return false;
-  const db = getRoomDB();
   const room = getRoomByCode(code);
   if (!room) return false;
 
   const now = new Date().toISOString();
-  const stmt = db.prepare(`
-    UPDATE rooms
-    SET status = ?, updated_at = ?
-    WHERE id = ?
-  `);
-  stmt.run(status, now, room.id);
+
+  try {
+    const db = getRoomDB();
+    const stmt = db.prepare(`
+      UPDATE rooms
+      SET status = ?, updated_at = ?
+      WHERE id = ?
+    `);
+    stmt.run(status, now, room.id);
+  } catch (err) {
+    console.warn('Failed to persist status update to SQLite:', err);
+  }
+
+  const updatedRoom: Room = {
+    ...room,
+    status,
+    updatedAt: now,
+  };
+
+  roomsCache.set(updatedRoom.code, updatedRoom);
+  roomsCache.set(updatedRoom.id, updatedRoom);
+
   return true;
 }
 
@@ -415,19 +535,32 @@ export function updateRoomCards(
   cardsState: { powerCards: any[]; sickCards: any[] } | null
 ): boolean {
   if (!code) return false;
-  const db = getRoomDB();
   const room = getRoomByCode(code);
   if (!room) return false;
 
   const now = new Date().toISOString();
   const cardsJson = cardsState ? JSON.stringify(cardsState) : null;
-  const stmt = db.prepare(`
-    UPDATE rooms
-    SET cards_state_json = ?, updated_at = ?
-    WHERE id = ?
-  `);
-  stmt.run(cardsJson, now, room.id);
+
+  try {
+    const db = getRoomDB();
+    const stmt = db.prepare(`
+      UPDATE rooms
+      SET cards_state_json = ?, updated_at = ?
+      WHERE id = ?
+    `);
+    stmt.run(cardsJson, now, room.id);
+  } catch (err) {
+    console.warn('Failed to persist cards update to SQLite:', err);
+  }
+
+  const updatedRoom: Room = {
+    ...room,
+    cardsState,
+    updatedAt: now,
+  };
+
+  roomsCache.set(updatedRoom.code, updatedRoom);
+  roomsCache.set(updatedRoom.id, updatedRoom);
+
   return true;
 }
-
-
