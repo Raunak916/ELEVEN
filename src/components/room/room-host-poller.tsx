@@ -45,17 +45,17 @@ export function RoomHostPoller() {
         if (!participants || !isMounted) return;
 
         const currentTeams = useAuctionStore.getState().teams;
-        let hasChanges = false;
         const contestantParticipants = participants.filter((p) => p.role === 'CONTESTANT');
-        const updatedTeams: Team[] = [];
+        const updatedTeams: Team[] = [...currentTeams];
+        let hasChanges = false;
 
         for (const p of contestantParticipants) {
           const clubId = p.id;
           const isGenericTeam = !p.teamName || p.teamName === `Team ${clubId}` || p.teamName === `Club ${clubId}`;
           const isGenericOwner = !p.name || p.name === `Manager ${clubId}`;
 
-          const existing = currentTeams.find((t) => t.id === clubId);
-          if (!existing) {
+          const existingIdx = updatedTeams.findIndex((t) => t.id === clubId);
+          if (existingIdx === -1) {
             updatedTeams.push({
               id: clubId,
               name: isGenericTeam ? `Club ${clubId}` : p.teamName,
@@ -65,20 +65,21 @@ export function RoomHostPoller() {
             });
             hasChanges = true;
           } else {
+            const existing = updatedTeams[existingIdx];
             const newName = !isGenericTeam ? p.teamName : existing.name;
             const newOwner = !isGenericOwner ? p.name : existing.owner;
-            updatedTeams.push({
-              ...existing,
-              name: newName,
-              owner: newOwner,
-            });
             if (existing.name !== newName || existing.owner !== newOwner) {
+              updatedTeams[existingIdx] = {
+                ...existing,
+                name: newName,
+                owner: newOwner,
+              };
               hasChanges = true;
             }
           }
         }
 
-        if (hasChanges || updatedTeams.length !== currentTeams.length) {
+        if (hasChanges) {
           useAuctionStore.setState({ teams: updatedTeams });
         }
       } catch (err) {
