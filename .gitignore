@@ -59,4 +59,8 @@ next-env.d.ts
 decision.md
 flow.md
 
+# SQLite runtime journals
+*.db-shm
+*.db-wal
+
 
