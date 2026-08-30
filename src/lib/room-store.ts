@@ -149,15 +149,26 @@ export const useRoomStore = create<RoomState>()(
 
           const session: ActiveRoomSession = data.session;
 
-          // Clear any stale local auction state so contestant starts completely clean for this room
+          // Clear stale auction state or hydrate existing room roster if already completed
           try {
             const { useAuctionStore } = await import('./auction-store');
-            useAuctionStore.setState({
-              auctionPlayers: [],
-              teams: [],
-              drawnPlayer: null,
-              drawPhase: 'idle',
-            });
+            const roomData = data.room;
+            if (roomData?.rosterState) {
+              const { teams, assignedPlayers } = roomData.rosterState;
+              useAuctionStore.setState({
+                teams: Array.isArray(teams) ? teams : [],
+                auctionPlayers: Array.isArray(assignedPlayers) ? assignedPlayers : [],
+                drawnPlayer: roomData.currentDraw?.drawnPlayer || null,
+                drawPhase: roomData.currentDraw?.drawPhase || 'idle',
+              });
+            } else {
+              useAuctionStore.setState({
+                auctionPlayers: [],
+                teams: [],
+                drawnPlayer: null,
+                drawPhase: 'idle',
+              });
+            }
           } catch {}
 
           set({
