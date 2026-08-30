@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFootballPlayerService } from '@/lib/football-player-service';
-import { getPlayerDB, rowToPlayer } from '@/lib/player-db';
-import { Player as DBPlayerType } from '@/lib/player-db-types';
+import { getPlayerDB, rowToPlayer, stripAccents } from '@/lib/player-db';
 import { Player, PlayerRole, Currency, PlayerCategory, PlayerPosition } from '@/lib/types';
 import { generatePlayerPhoto } from '@/lib/player-photo';
 
@@ -22,17 +21,12 @@ interface MatchResult {
   reason: string;
 }
 
-const NAME_MATCH_WEIGHT = 0.6;
-const CLUB_MATCH_WEIGHT = 0.4;
-const HIGH_CONFIDENCE_THRESHOLD = 0.85;
-const MEDIUM_CONFIDENCE_THRESHOLD = 0.65;
-const LOW_CONFIDENCE_THRESHOLD = 0.4;
-
 function transformToClientPlayer(p: any): Player {
   const hasRealPhoto = p.photoUrl && !p.photoUrl.includes('default.jpg');
-  const photo: string = hasRealPhoto && p.photoUrl
-    ? p.photoUrl
-    : generatePlayerPhoto(p.name, p.category, p.primaryPosition || p.position);
+  const photo: string =
+    hasRealPhoto && p.photoUrl
+      ? p.photoUrl
+      : generatePlayerPhoto(p.name, p.category, p.primaryPosition || p.position);
 
   return {
     id: p.id,
@@ -53,115 +47,138 @@ function transformToClientPlayer(p: any): Player {
   };
 }
 
-function normalizeString(str: string): string {
-  if (!str) return '';
-  return str
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-    .replace(/[^a-z0-9\s]/g, '')
-    .trim();
-}
-
 function calculateNameSimilarity(inputName: string, playerName: string): number {
-  const input = normalizeString(inputName);
-  const target = normalizeString(playerName);
+  const input = stripAccents(inputName);
+  const target = stripAccents(playerName);
 
   if (!input || !target) return 0;
   if (input === target) return 1.0;
-  if (target.includes(input) || input.includes(target)) return 0.9;
 
-  const inputTokens = new Set(input.split(/\s+/).filter(Boolean));
-  const targetTokens = new Set(target.split(/\s+/).filter(Boolean));
+  // Substring containment
+  if (target.includes(input) || input.includes(target)) {
+    return 0.95;
+  }
 
-  const intersection = new Set([...inputTokens].filter(x => targetTokens.has(x)));
+  const inputTokens = input.split(/\s+/).filter(Boolean);
+  const targetTokens = target.split(/\s+/).filter(Boolean);
+
+  if (inputTokens.length === 0 || targetTokens.length === 0) return 0;
+
+  const targetSet = new Set(targetTokens);
+  const matchingTokens = inputTokens.filter((token) => targetSet.has(token));
+
+  // If all input tokens exist in target (e.g. "Lionel Messi" in "Lionel Andres Messi")
+  if (matchingTokens.length === inputTokens.length) {
+    return 0.94;
+  }
+
+  // If last name matches
+  const lastInputToken = inputTokens[inputTokens.length - 1];
+  const lastTargetToken = targetTokens[targetTokens.length - 1];
+  if (lastInputToken.length >= 3 && (lastInputToken === lastTargetToken || targetSet.has(lastInputToken))) {
+    return 0.88;
+  }
+
+  // If first name matches and there is only 1 token in target
+  if (targetTokens.length === 1 && targetTokens[0] === inputTokens[0]) {
+    return 0.90;
+  }
+
+  // Token overlap ratio
   const union = new Set([...inputTokens, ...targetTokens]);
-
-  if (union.size === 0) return 0;
-  return intersection.size / union.size;
+  return matchingTokens.length / union.size;
 }
 
 function calculateClubSimilarity(inputClub: string, playerClub: string | null): number {
   if (!inputClub || !playerClub) return 0;
 
-  const input = normalizeString(inputClub);
-  const target = normalizeString(playerClub);
+  const input = stripAccents(inputClub);
+  const target = stripAccents(playerClub);
 
   if (!input || !target) return 0;
   if (input === target) return 1.0;
-  if (target.includes(input) || input.includes(target)) return 0.9;
 
-  const inputTokens = new Set(input.split(/\s+/).filter(Boolean));
-  const targetTokens = new Set(target.split(/\s+/).filter(Boolean));
+  if (target.includes(input) || input.includes(target)) {
+    return 0.90;
+  }
 
-  const intersection = new Set([...inputTokens].filter(x => targetTokens.has(x)));
-  const union = new Set([...inputTokens, ...targetTokens]);
+  const inputTokens = new Set(input.split(/\s+/).filter((t) => t.length > 2));
+  const targetTokens = new Set(target.split(/\s+/).filter((t) => t.length > 2));
 
-  if (union.size === 0) return 0;
-  return intersection.size / union.size;
+  const intersection = new Set([...inputTokens].filter((x) => targetTokens.has(x)));
+  if (intersection.size > 0) {
+    return 0.85;
+  }
+
+  return 0;
 }
 
-function calculateConfidence(input: ImportRow, player: any): { score: number; reason: string } {
+function calculateConfidence(
+  input: ImportRow,
+  player: any
+): { score: number; reason: string; confidence: 'high' | 'medium' | 'low' | 'none' } {
   if (input.playerId && input.playerId === player.id) {
-    return { score: 1.0, reason: 'Exact ID match' };
+    return { score: 1.0, reason: 'Exact ID match', confidence: 'high' };
   }
 
   const nameScore = calculateNameSimilarity(input.name || '', player.name || '');
   const hasClubInput = Boolean(input.club && input.club.trim().length > 0);
-  const clubScore = hasClubInput ? calculateClubSimilarity(input.club || '', player.currentTeam || player.team || '') : 0;
+  const clubScore = hasClubInput
+    ? calculateClubSimilarity(input.club || '', player.currentTeam || player.team || '')
+    : 0;
 
-  // If club was provided, use weighted average; otherwise name is 100% of the score
-  let weightedScore = hasClubInput 
-    ? (nameScore * NAME_MATCH_WEIGHT) + (clubScore * CLUB_MATCH_WEIGHT)
-    : nameScore;
-
-  // Bonus for role match if role was specified in input
-  if (input.role && player.role && input.role.toLowerCase() === player.role.toLowerCase()) {
-    weightedScore = Math.min(1.0, weightedScore + 0.05);
-  }
-
+  let confidence: 'high' | 'medium' | 'low' | 'none' = 'none';
   let reason = '';
-  if (hasClubInput) {
-    if (weightedScore >= HIGH_CONFIDENCE_THRESHOLD) {
-      reason = `Strong match (name: ${Math.round(nameScore * 100)}%, club: ${Math.round(clubScore * 100)}%)`;
-    } else if (weightedScore >= MEDIUM_CONFIDENCE_THRESHOLD) {
-      reason = `Good match (name: ${Math.round(nameScore * 100)}%, club: ${Math.round(clubScore * 100)}%)`;
-    } else if (weightedScore >= LOW_CONFIDENCE_THRESHOLD) {
-      reason = `Partial match (name: ${Math.round(nameScore * 100)}%, club: ${Math.round(clubScore * 100)}%)`;
+  let score = nameScore;
+
+  if (nameScore >= 0.80) {
+    confidence = 'high';
+    score = 0.95;
+    reason = clubScore >= 0.8
+      ? `Exact Match (${player.name} · ${player.currentTeam || player.team || 'Pro'})`
+      : `Strong Name Match (${player.name})`;
+  } else if (nameScore >= 0.50) {
+    if (clubScore >= 0.6) {
+      confidence = 'high';
+      score = 0.88;
+      reason = `Club-confirmed match (${player.name} · ${player.currentTeam || player.team})`;
     } else {
-      reason = `Low similarity match (name: ${Math.round(nameScore * 100)}%)`;
+      confidence = 'medium';
+      score = 0.72;
+      reason = `Good name match (${player.name})`;
+    }
+  } else if (nameScore >= 0.30) {
+    if (clubScore >= 0.8) {
+      confidence = 'medium';
+      score = 0.65;
+      reason = `Club-matched player (${player.name} · ${player.currentTeam || player.team})`;
+    } else {
+      confidence = 'low';
+      score = 0.40;
+      reason = `Partial match (${player.name})`;
     }
   } else {
-    if (weightedScore >= HIGH_CONFIDENCE_THRESHOLD) {
-      reason = `Strong name match (${Math.round(nameScore * 100)}%)`;
-    } else if (weightedScore >= MEDIUM_CONFIDENCE_THRESHOLD) {
-      reason = `Good name match (${Math.round(nameScore * 100)}%)`;
-    } else if (weightedScore >= LOW_CONFIDENCE_THRESHOLD) {
-      reason = `Partial name match (${Math.round(nameScore * 100)}%)`;
-    } else {
-      reason = `Low similarity (${Math.round(nameScore * 100)}%)`;
-    }
+    confidence = 'none';
+    score = 0.10;
+    reason = `Low similarity (${player.name})`;
   }
 
-  return { score: weightedScore, reason };
-}
-
-function getConfidenceLabel(score: number): 'high' | 'medium' | 'low' | 'none' {
-  if (score >= HIGH_CONFIDENCE_THRESHOLD) return 'high';
-  if (score >= MEDIUM_CONFIDENCE_THRESHOLD) return 'medium';
-  if (score >= LOW_CONFIDENCE_THRESHOLD) return 'low';
-  return 'none';
+  return { score, reason, confidence };
 }
 
 function parseCSVString(content: string): ImportRow[] {
-  const lines = content.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+  const lines = content.trim().split(/\r?\n/).filter((l) => l.trim().length > 0);
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
+  const headers = lines[0]
+    .split(',')
+    .map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
   const rows: ImportRow[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
+    const values = lines[i]
+      .split(',')
+      .map((v) => v.trim().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
     const row: Record<string, string> = {};
 
     headers.forEach((header, idx) => {
@@ -257,12 +274,19 @@ export async function POST(request: NextRequest) {
         }
 
         if (dbCandidates.length === 0) {
-          // First search by player name
-          let ftsResults = await service.searchPlayers(row.name, 15);
+          // Primary search
+          let ftsResults = await service.searchPlayers(row.name, 20);
 
-          // If no results and club was provided, try combined search or vice versa
-          if (ftsResults.length === 0 && row.club) {
-            ftsResults = await service.searchPlayers(`${row.name} ${row.club}`, 15);
+          // If no results, try last name or tokens
+          if (ftsResults.length === 0) {
+            const tokens = row.name.trim().split(/\s+/).filter((t) => t.length >= 3);
+            for (const token of tokens) {
+              const tokenResults = await service.searchPlayers(token, 10);
+              if (tokenResults.length > 0) {
+                ftsResults = tokenResults;
+                break;
+              }
+            }
           }
 
           dbCandidates = [...ftsResults];
@@ -270,15 +294,18 @@ export async function POST(request: NextRequest) {
           try {
             const cleanName = row.name.replace(/[^a-zA-Z0-9\s]/g, '').trim();
             if (cleanName) {
-              const customPlayers = db.prepare(`
-                SELECT * FROM players
-                WHERE source = 'custom'
-                AND search_text LIKE ?
-                ORDER BY created_at DESC
-                LIMIT 10
-              `).all(`%${cleanName.toLowerCase()}%`).map(rowToPlayer);
+              const customPlayers = db
+                .prepare(`
+                  SELECT * FROM players
+                  WHERE source = 'custom'
+                  AND search_text LIKE ?
+                  ORDER BY created_at DESC
+                  LIMIT 10
+                `)
+                .all(`%${cleanName.toLowerCase()}%`)
+                .map(rowToPlayer);
 
-              const seen = new Set(dbCandidates.map(p => p.id));
+              const seen = new Set(dbCandidates.map((p) => p.id));
               for (const c of customPlayers) {
                 if (!seen.has(c.id)) {
                   dbCandidates.push(c);
@@ -286,8 +313,8 @@ export async function POST(request: NextRequest) {
                 }
               }
             }
-          } catch (customErr) {
-            console.warn('Custom player query failed:', customErr);
+          } catch {
+            // Ignore
           }
         }
       } catch (searchErr) {
@@ -297,21 +324,21 @@ export async function POST(request: NextRequest) {
       const candidates = dbCandidates.map(transformToClientPlayer);
 
       const scored = dbCandidates.map((player, idx) => {
-        const { score, reason } = calculateConfidence(row, player);
-        return { player: candidates[idx], score, reason };
+        const { score, reason, confidence } = calculateConfidence(row, player);
+        return { player: candidates[idx], score, reason, confidence };
       });
 
       scored.sort((a, b) => b.score - a.score);
 
       const bestMatch = scored[0]?.player || null;
-      const bestScore = scored[0]?.score || 0;
+      const bestConfidence = scored[0]?.confidence || 'none';
       const bestReason = scored[0]?.reason || 'No match found';
 
       results.push({
         inputRow: row,
-        matches: scored.map(s => s.player),
+        matches: scored.map((s) => s.player),
         bestMatch,
-        confidence: getConfidenceLabel(bestScore),
+        confidence: bestConfidence,
         reason: bestReason,
       });
     }
@@ -320,7 +347,7 @@ export async function POST(request: NextRequest) {
       success: true,
       results,
       total: rows.length,
-      matched: results.filter(r => r.confidence !== 'none').length,
+      matched: results.filter((r) => r.confidence === 'high' || r.confidence === 'medium').length,
     });
   } catch (error: any) {
     console.error('Bulk match error:', error);

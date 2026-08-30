@@ -8,7 +8,40 @@ import { PLAYERS } from './players-data';
 // Re-export Player for compatibility
 export type { Player };
 
-const DB_PATH = join(process.cwd(), 'data', 'players.db');
+export function stripAccents(str: string): string {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findDatabaseFile(): string | null {
+  const candidates = [
+    join(process.cwd(), 'data', 'players.db'),
+    join(process.cwd(), '..', 'data', 'players.db'),
+    join(__dirname, 'data', 'players.db'),
+    join(__dirname, '..', 'data', 'players.db'),
+    join(__dirname, '..', '..', 'data', 'players.db'),
+    join(__dirname, '..', '..', '..', 'data', 'players.db'),
+    join('/var/task', 'data', 'players.db'),
+    join('/var/task', 'players.db'),
+  ];
+
+  for (const p of candidates) {
+    try {
+      if (existsSync(p)) {
+        return p;
+      }
+    } catch {
+      // Continue
+    }
+  }
+  return null;
+}
 
 let dbInstance: Database.Database | null = null;
 
@@ -16,23 +49,31 @@ export function getPlayerDB(): Database.Database {
   if (dbInstance) return dbInstance;
 
   // 1. Try opening existing DB in readonly mode (Vercel Serverless safe)
-  try {
-    if (existsSync(DB_PATH)) {
+  const dbPath = findDatabaseFile();
+  if (dbPath) {
+    try {
+      const db = new Database(dbPath, { readonly: true, fileMustExist: true });
       try {
-        const db = new Database(DB_PATH, { readonly: true, fileMustExist: true });
-        dbInstance = db;
-        return db;
-      } catch (roErr) {
-        console.warn('Readonly DB connection failed, creating in-memory fallback:', roErr);
+        db.function('unaccent', (str: any) => stripAccents(str || ''));
+      } catch {
+        // Function registration optional
       }
+      dbInstance = db;
+      return db;
+    } catch (roErr) {
+      console.warn(`Readonly DB connection to ${dbPath} failed, creating in-memory fallback:`, roErr);
     }
-  } catch (fsErr) {
-    console.warn('FS check error, creating in-memory fallback:', fsErr);
   }
 
   // 2. In-Memory fallback database for Serverless / Cloud environments
   try {
     const db = new Database(':memory:');
+    try {
+      db.function('unaccent', (str: any) => stripAccents(str || ''));
+    } catch {
+      // Optional
+    }
+
     db.exec(`
       CREATE TABLE IF NOT EXISTS players (
         id TEXT PRIMARY KEY,

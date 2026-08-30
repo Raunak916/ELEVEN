@@ -2,14 +2,12 @@
  * Football Player Service (Server-side only)
  *
  * Abstraction layer for player search across multiple data sources.
- * Currently uses local SQLite database (transfermarkt-datasets + future Wikidata).
- * Designed to be easily extensible for foot.io, API-Football, etc.
+ * Currently uses local SQLite database (transfermarkt-datasets + curated catalog).
  *
  * IMPORTANT: This file must ONLY be imported in server-side code (API routes, server components).
- * For client-side, use football-player-client.ts
  */
 
-import { getPlayerDB, rowToPlayer, Player } from './player-db';
+import { getPlayerDB, rowToPlayer, stripAccents, Player } from './player-db';
 import { PLAYERS } from './players-data';
 
 function toDBPlayer(p: any): Player {
@@ -51,19 +49,44 @@ export class FootballPlayerService {
   }
 
   /**
-   * Search players by name with fuzzy matching using FTS5, LIKE, and curated catalog
+   * Search players by name with high-recall fuzzy & multi-token matching
    */
   async searchPlayers(query: string, limit = 50): Promise<Player[]> {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) {
-      // Return top famous players if query is empty
+    const rawQuery = (query || '').trim();
+    if (!rawQuery) {
       return PLAYERS.slice(0, limit).map(toDBPlayer);
     }
 
+    const cleanQuery = stripAccents(rawQuery);
+    const queryTokens = cleanQuery.split(/\s+/).filter((t) => t.length > 0);
+
     // 1. Check curated catalog (Legends, Icons, Heroes, Stars)
     const curatedMatches = PLAYERS.filter((p) => {
-      const searchable = `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`.toLowerCase();
-      return searchable.includes(normalized);
+      const normalizedName = stripAccents(p.name);
+      const searchable = stripAccents(
+        `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`
+      );
+
+      // Exact or substring match
+      if (normalizedName.includes(cleanQuery) || searchable.includes(cleanQuery) || cleanQuery.includes(normalizedName)) {
+        return true;
+      }
+
+      // Multi-token match: all non-trivial query tokens exist in searchable
+      if (queryTokens.length > 1) {
+        const allTokensPresent = queryTokens.every((token) => searchable.includes(token));
+        if (allTokensPresent) return true;
+      }
+
+      // Last name match
+      if (queryTokens.length > 0) {
+        const lastToken = queryTokens[queryTokens.length - 1];
+        if (lastToken.length >= 3 && normalizedName.includes(lastToken)) {
+          return true;
+        }
+      }
+
+      return false;
     }).map(toDBPlayer);
 
     let dbMatches: Player[] = [];
@@ -71,15 +94,10 @@ export class FootballPlayerService {
     try {
       const db = this.getDb();
 
-      // Sanitize search query: keep only alphanumeric characters for FTS prefix matching
-      const cleanTerms = normalized
-        .replace(/[^a-zA-Z0-9\s]/g, ' ')
-        .split(/\s+/)
-        .filter(term => term.length > 0);
-
-      if (cleanTerms.length > 0) {
+      // 2. FTS5 Search
+      if (queryTokens.length > 0) {
         try {
-          const ftsQuery = cleanTerms.map(term => `"${term}"*`).join(' ');
+          const ftsQuery = queryTokens.map((term) => `"${term}"*`).join(' ');
           const rows = db.prepare(`
             SELECT p.*
             FROM players_fts fts
@@ -101,16 +119,19 @@ export class FootballPlayerService {
             dbMatches = rows.map(rowToPlayer);
           }
         } catch {
-          // FTS5 table may not exist, continue to LIKE query
+          // FTS fallback
         }
       }
 
-      // Fallback to LIKE query if FTS returned nothing
-      if (dbMatches.length === 0) {
+      // 3. Accent-Insensitive Multi-Token LIKE
+      if (dbMatches.length < limit && queryTokens.length > 0) {
         try {
+          const likeConditions = queryTokens.map(() => `unaccent(search_text) LIKE ?`).join(' AND ');
+          const likeParams = queryTokens.map((t) => `%${t}%`);
+
           const rows = db.prepare(`
             SELECT * FROM players
-            WHERE search_text LIKE ? OR name LIKE ?
+            WHERE ${likeConditions} OR unaccent(search_text) LIKE ? OR unaccent(name) LIKE ?
             ORDER BY 
               CASE category
                 WHEN 'LEGEND' THEN 4
@@ -120,13 +141,66 @@ export class FootballPlayerService {
               END DESC,
               COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
             LIMIT ?
-          `).all(`%${normalized}%`, `%${normalized}%`, limit);
+          `).all(...likeParams, `%${cleanQuery}%`, `%${cleanQuery}%`, limit);
 
-          if (rows.length > 0) {
-            dbMatches = rows.map(rowToPlayer);
+          const existingIds = new Set(dbMatches.map((p) => p.id));
+          for (const row of rows) {
+            const player = rowToPlayer(row);
+            if (!existingIds.has(player.id)) {
+              dbMatches.push(player);
+              existingIds.add(player.id);
+            }
           }
         } catch (likeErr) {
-          console.warn('LIKE query warning:', likeErr);
+          // Fallback without unaccent function if unavailable
+          try {
+            const likeConditions = queryTokens.map(() => `search_text LIKE ?`).join(' AND ');
+            const likeParams = queryTokens.map((t) => `%${t}%`);
+            const rows = db.prepare(`
+              SELECT * FROM players
+              WHERE ${likeConditions}
+              ORDER BY COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
+              LIMIT ?
+            `).all(...likeParams, limit);
+
+            const existingIds = new Set(dbMatches.map((p) => p.id));
+            for (const row of rows) {
+              const player = rowToPlayer(row);
+              if (!existingIds.has(player.id)) {
+                dbMatches.push(player);
+                existingIds.add(player.id);
+              }
+            }
+          } catch {
+            // Ignore
+          }
+        }
+      }
+
+      // 4. Surname / individual token fallback (e.g. Alisson, Mbappé, Yamal, Modrić)
+      if (dbMatches.length === 0 && queryTokens.length > 0) {
+        const primaryTokens = queryTokens.filter((t) => t.length >= 3);
+        for (const token of primaryTokens) {
+          try {
+            const rows = db.prepare(`
+              SELECT * FROM players
+              WHERE unaccent(name) LIKE ? OR search_text LIKE ?
+              ORDER BY COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
+              LIMIT ?
+            `).all(`%${token}%`, `%${token}%`, 10);
+
+            const existingIds = new Set(dbMatches.map((p) => p.id));
+            for (const row of rows) {
+              const player = rowToPlayer(row);
+              if (!existingIds.has(player.id)) {
+                dbMatches.push(player);
+                existingIds.add(player.id);
+              }
+            }
+            if (dbMatches.length > 0) break;
+          } catch {
+            // Ignore
+          }
         }
       }
     } catch (err) {
@@ -135,10 +209,10 @@ export class FootballPlayerService {
 
     // Combine curated matches first, then DB matches, deduplicating by normalized name
     const combined: Player[] = [...curatedMatches];
-    const seenNames = new Set(curatedMatches.map(p => p.name.toLowerCase()));
+    const seenNames = new Set(curatedMatches.map((p) => stripAccents(p.name)));
 
     for (const p of dbMatches) {
-      const nameKey = p.name.toLowerCase();
+      const nameKey = stripAccents(p.name);
       if (!seenNames.has(nameKey)) {
         combined.push(p);
         seenNames.add(nameKey);
@@ -159,83 +233,50 @@ export class FootballPlayerService {
     } catch {
       // fallback
     }
-    const found = PLAYERS.find(p => p.id === id);
-    return found ? toDBPlayer(found) : null;
+
+    const curated = PLAYERS.find((p) => p.id === id);
+    if (curated) return toDBPlayer(curated);
+
+    return null;
   }
 
   /**
-   * Get player by external ID (transfermarkt, wikidata, etc.)
+   * Get player statistics
    */
-  async getPlayerByExternalId(source: string, externalId: string): Promise<Player | null> {
+  async getStats(): Promise<{
+    totalPlayers: number;
+    legendCount: number;
+    iconCount: number;
+    heroCount: number;
+    currentCount: number;
+  }> {
     try {
       const db = this.getDb();
-      const row = db.prepare(`
-        SELECT p.* FROM players p
-        JOIN player_external_ids e ON p.id = e.player_id
-        WHERE e.source = ? AND e.external_id = ?
-      `).get(source, externalId) as unknown;
-      return row ? rowToPlayer(row) : null;
-    } catch {
-      return null;
-    }
-  }
+      const stats = db.prepare(`
+        SELECT 
+          COUNT(*) as total,
+          SUM(CASE WHEN category = 'LEGEND' THEN 1 ELSE 0 END) as legends,
+          SUM(CASE WHEN category = 'ICON' THEN 1 ELSE 0 END) as icons,
+          SUM(CASE WHEN category = 'HERO' THEN 1 ELSE 0 END) as heroes,
+          SUM(CASE WHEN category = 'CURRENT' THEN 1 ELSE 0 END) as currents
+        FROM players
+      `).get() as any;
 
-  /**
-   * Get players by category
-   */
-  async getPlayersByCategory(category: Player['category'], limit = 100): Promise<Player[]> {
-    try {
-      const db = this.getDb();
-      const rows = db.prepare(`
-        SELECT * FROM players WHERE category = ? ORDER BY name LIMIT ?
-      `).all(category, limit) as unknown[];
-      return rows.map(rowToPlayer);
+      return {
+        totalPlayers: stats.total || PLAYERS.length,
+        legendCount: stats.legends || PLAYERS.filter((p) => p.category === 'LEGEND').length,
+        iconCount: stats.icons || PLAYERS.filter((p) => p.category === 'ICON').length,
+        heroCount: stats.heroes || PLAYERS.filter((p) => p.category === 'HERO').length,
+        currentCount: stats.currents || PLAYERS.filter((p) => p.category === 'CURRENT').length,
+      };
     } catch {
-      return PLAYERS.filter(p => p.category === category).slice(0, limit).map(toDBPlayer);
-    }
-  }
-
-  /**
-   * Get players by nationality
-   */
-  async getPlayersByNationality(nationalityCode: string, limit = 100): Promise<Player[]> {
-    try {
-      const db = this.getDb();
-      const rows = db.prepare(`
-        SELECT * FROM players WHERE nationality_code = ? ORDER BY name LIMIT ?
-      `).all(nationalityCode.toUpperCase(), limit);
-      return rows.map(rowToPlayer);
-    } catch {
-      return PLAYERS.filter(p => p.nationalityCode?.toUpperCase() === nationalityCode.toUpperCase()).slice(0, limit).map(toDBPlayer);
-    }
-  }
-
-  /**
-   * Get random players for discovery
-   */
-  async getRandomPlayers(count = 20): Promise<Player[]> {
-    try {
-      const db = this.getDb();
-      const rows = db.prepare(`
-        SELECT * FROM players ORDER BY RANDOM() LIMIT ?
-      `).all(count);
-      return rows.map(rowToPlayer);
-    } catch {
-      const shuffled = [...PLAYERS].sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, count).map(toDBPlayer);
-    }
-  }
-
-  /**
-   * Get total player count
-   */
-  async getTotalCount(): Promise<number> {
-    try {
-      const db = this.getDb();
-      const row = db.prepare('SELECT COUNT(*) as c FROM players').get() as { c: number };
-      return row.c;
-    } catch {
-      return PLAYERS.length;
+      return {
+        totalPlayers: PLAYERS.length,
+        legendCount: PLAYERS.filter((p) => p.category === 'LEGEND').length,
+        iconCount: PLAYERS.filter((p) => p.category === 'ICON').length,
+        heroCount: PLAYERS.filter((p) => p.category === 'HERO').length,
+        currentCount: PLAYERS.filter((p) => p.category === 'CURRENT').length,
+      };
     }
   }
 }
