@@ -4,7 +4,7 @@ import React from 'react';
 import { useRoomStore } from '@/lib/room-store';
 import { useHydrated } from '@/lib/use-hydrated';
 import { ContestantPlaceholder } from './contestant-placeholder';
-import { ContestantAuctionSummaryScreen } from './contestant-auction-summary-screen';
+import { ContestantCompletedScreen } from './contestant-completed-screen';
 import { RoomHostPoller } from './room-host-poller';
 import { RoomContestantPoller } from './room-contestant-poller';
 
@@ -20,7 +20,7 @@ export function RoomModeGuard({ children }: { children: React.ReactNode }) {
       <>
         <RoomContestantPoller />
         {isCompleted ? (
-          <ContestantAuctionSummaryScreen />
+          <ContestantCompletedScreen />
         ) : (
           <ContestantPlaceholder />
         )}
