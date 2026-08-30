@@ -1437,8 +1437,30 @@ const RAW_PLAYERS: RawPlayer[] = [
   }
 ];
 
-export const PLAYERS: Player[] = RAW_PLAYERS.map((raw, index) => ({
-  id: `p-${index}`,
+import catalogPlayers from '@/data/players-catalog.json';
+
+const BUNDLED_PLAYERS: Player[] = (catalogPlayers as any[]).map((p, idx) => ({
+  id: p.id || `p-cat-${idx}`,
+  name: p.name,
+  firstName: p.firstName || '',
+  lastName: p.lastName || '',
+  nationality: p.nationality || 'Unknown',
+  nationalityCode: p.nationalityCode || 'XX',
+  position: (p.position || 'CM') as PlayerPosition,
+  role: (p.role || getRoleFromPosition((p.position || 'CM') as PlayerPosition)),
+  dateOfBirth: p.dateOfBirth || '2000-01-01',
+  photo: p.photo || generatePlayerPhoto(p.name, p.category || 'CURRENT', (p.position || 'CM') as PlayerPosition),
+  team: p.team || 'Unknown',
+  league: p.league || 'Unknown',
+  category: (p.category || 'CURRENT') as PlayerCategory,
+  status: 'AVAILABLE',
+}));
+
+const existingNames = new Set(BUNDLED_PLAYERS.map((p) => p.name.toLowerCase()));
+const extraRaw: Player[] = RAW_PLAYERS.filter(
+  (r) => !existingNames.has(r.name.toLowerCase())
+).map((raw, index) => ({
+  id: `p-raw-${index}`,
   name: raw.name,
   firstName: raw.firstName,
   lastName: raw.lastName,
@@ -1454,6 +1476,9 @@ export const PLAYERS: Player[] = RAW_PLAYERS.map((raw, index) => ({
   status: 'AVAILABLE',
 }));
 
+export const PLAYERS: Player[] = [...BUNDLED_PLAYERS, ...extraRaw];
+
 export function getAllPlayers(): Player[] {
   return PLAYERS;
 }
+
