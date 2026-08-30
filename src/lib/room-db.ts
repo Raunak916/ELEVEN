@@ -427,15 +427,16 @@ export function updateRoomDraw(
 
   const now = new Date().toISOString();
   const drawJson = currentDraw ? JSON.stringify(currentDraw) : null;
+  const nextStatus: RoomStatus = currentDraw?.drawnPlayer ? 'LIVE' : room.status;
 
   try {
     const db = getRoomDB();
     const stmt = db.prepare(`
       UPDATE rooms
-      SET current_draw_json = ?, updated_at = ?
+      SET current_draw_json = ?, status = ?, updated_at = ?
       WHERE id = ?
     `);
-    stmt.run(drawJson, now, room.id);
+    stmt.run(drawJson, nextStatus, now, room.id);
   } catch (err) {
     console.warn('Failed to persist draw update to SQLite:', err);
   }
@@ -443,6 +444,7 @@ export function updateRoomDraw(
   const updatedRoom: Room = {
     ...room,
     currentDraw,
+    status: nextStatus,
     updatedAt: now,
   };
 

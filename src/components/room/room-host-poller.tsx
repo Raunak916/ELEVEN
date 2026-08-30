@@ -13,9 +13,9 @@ export function RoomHostPoller() {
   const hydrated = useHydrated();
   const isSyncingRef = useRef(false);
 
+  // Sync connected contestants to host teams list
   useEffect(() => {
     if (!hydrated) return;
-    if (hostedRoom?.status === 'COMPLETED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -79,7 +79,7 @@ export function RoomHostPoller() {
     // High-frequency polling (350ms) for live contestants joining the room
     const interval = setInterval(syncParticipants, 350);
     return () => clearInterval(interval);
-  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, syncHostedRoomParticipants]);
+  }, [hydrated, hostedRoom?.code, createdCode, syncHostedRoomParticipants]);
 
   // Host: Broadcast current draw state to room
   const drawnPlayer = useAuctionStore((state) => state.drawnPlayer);
@@ -87,7 +87,6 @@ export function RoomHostPoller() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (hostedRoom?.status === 'COMPLETED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -108,7 +107,7 @@ export function RoomHostPoller() {
     };
 
     broadcastDraw();
-  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, drawnPlayer, drawPhase]);
+  }, [hydrated, hostedRoom?.code, createdCode, drawnPlayer, drawPhase]);
 
   // Host: Broadcast teams, expenses, and assigned roster players to room
   const teams = useAuctionStore((state) => state.teams);
@@ -117,7 +116,6 @@ export function RoomHostPoller() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (hostedRoom?.status === 'COMPLETED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -149,12 +147,11 @@ export function RoomHostPoller() {
     };
 
     broadcastRoster();
-  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, teams, auctionPlayers, settings]);
+  }, [hydrated, hostedRoom?.code, createdCode, teams, auctionPlayers, settings]);
 
   // Host: Broadcast cards state to room on interval and on changes
   useEffect(() => {
     if (!hydrated) return;
-    if (hostedRoom?.status === 'COMPLETED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -178,9 +175,9 @@ export function RoomHostPoller() {
     };
 
     broadcastCards();
-    const interval = setInterval(broadcastCards, 3000);
+    const interval = setInterval(broadcastCards, 2000);
     return () => clearInterval(interval);
-  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode]);
+  }, [hydrated, hostedRoom?.code, createdCode]);
 
   return null;
 }
