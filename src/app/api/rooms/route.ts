@@ -47,21 +47,28 @@ export async function GET(req: Request) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      room: {
-        id: room.id,
-        code: room.code,
-        status: room.status,
-        settings: room.settings,
-        currentDraw: room.currentDraw,
-        rosterState: room.rosterState,
-        cardsState: room.cardsState,
-        createdAt: room.createdAt,
-        participantsCount: room.participants.length,
-        participants: room.participants,
+    return NextResponse.json(
+      {
+        success: true,
+        room: {
+          id: room.id,
+          code: room.code,
+          status: room.status,
+          settings: room.settings,
+          currentDraw: room.currentDraw,
+          rosterState: room.rosterState,
+          cardsState: room.cardsState,
+          createdAt: room.createdAt,
+          participantsCount: room.participants.length,
+          participants: room.participants,
+        },
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Failed to query room:', error);
     return NextResponse.json(

@@ -76,8 +76,8 @@ export function RoomHostPoller() {
     // Initial immediate sync
     syncParticipants();
 
-    // Poll every 800ms for live contestants joining the room
-    const interval = setInterval(syncParticipants, 800);
+    // High-frequency polling (350ms) for live contestants joining the room
+    const interval = setInterval(syncParticipants, 350);
     return () => clearInterval(interval);
   }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, syncHostedRoomParticipants]);
 

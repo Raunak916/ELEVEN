@@ -22,8 +22,22 @@ export function ContestantDrawTab() {
     }
   }, [drawnPlayer]);
 
-  // If drawnPlayer is null but we have a persisted player, sync with latest auctionPlayers roster if assigned
-  const activePlayer = drawnPlayer || persistedPlayer;
+  // Find latest player from auctionPlayers roster if drawnPlayer is null (e.g. pending sale or recently assigned)
+  const latestFromRoster = React.useMemo(() => {
+    if (drawnPlayer) return null;
+    const candidates = auctionPlayers.filter(
+      (ap) => ap.status === 'DRAWN' || Boolean(ap.teamId) || ap.status === 'UNSOLD' || Boolean(ap.drawnAt) || Boolean(ap.soldAt)
+    );
+    if (candidates.length === 0) return null;
+    return candidates.slice().sort((a, b) => {
+      const timeA = new Date(a.soldAt || a.drawnAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.soldAt || b.drawnAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
+    })[0] || null;
+  }, [drawnPlayer, auctionPlayers]);
+
+  // Active player resolution hierarchy: Live drawnPlayer -> Component persistedPlayer -> Latest from roster
+  const activePlayer = drawnPlayer || persistedPlayer || latestFromRoster;
   const currentAssignedData = activePlayer
     ? auctionPlayers.find((ap) => ap.id === activePlayer.id)
     : null;

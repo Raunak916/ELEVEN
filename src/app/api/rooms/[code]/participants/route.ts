@@ -22,12 +22,19 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      roomCode: room.code,
-      status: room.status,
-      participants: room.participants,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        roomCode: room.code,
+        status: room.status,
+        participants: room.participants,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Failed to get room participants:', error);
     return NextResponse.json(

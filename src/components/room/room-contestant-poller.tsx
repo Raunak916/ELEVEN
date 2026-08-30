@@ -165,9 +165,23 @@ export function RoomContestantPoller() {
     // Initial immediate poll
     pollRoomState();
 
-    // High-frequency polling (600ms) for ultra-responsive live sync without page refresh
-    const interval = setInterval(pollRoomState, 600);
-    return () => clearInterval(interval);
+    // High-frequency polling (300ms) for real-time live sync across devices
+    const interval = setInterval(pollRoomState, 300);
+
+    // Instant sync when phone screen is turned on or tab gains focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        pollRoomState();
+      }
+    };
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
   }, [hydrated, activeSession?.roomCode, activeSession?.role]);
 
   return null;
