@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFootballPlayerService } from '@/lib/football-player-service';
 import { getPlayerDB, rowToPlayer } from '@/lib/player-db';
+import { Player as DBPlayerType } from '@/lib/player-db-types';
 import { Player, PlayerRole, Currency, PlayerCategory, PlayerPosition } from '@/lib/types';
 import { generatePlayerPhoto } from '@/lib/player-photo';
 
@@ -21,45 +22,17 @@ interface MatchResult {
   reason: string;
 }
 
-const HIGH_CONFIDENCE_THRESHOLD = 0.80;
-const MEDIUM_CONFIDENCE_THRESHOLD = 0.55;
-const LOW_CONFIDENCE_THRESHOLD = 0.35;
-
-const CLUB_ALIASES: Record<string, string[]> = {
-  'man city': ['manchester city', 'man city', 'manchester city fc'],
-  'manchester city': ['manchester city', 'man city', 'manchester city fc'],
-  'man utd': ['manchester united', 'man utd', 'manchester united fc', 'man united'],
-  'manchester united': ['manchester united', 'man utd', 'manchester united fc', 'man united'],
-  'real madrid': ['real madrid', 'real madrid cf'],
-  'barca': ['barcelona', 'fc barcelona', 'barca'],
-  'barcelona': ['barcelona', 'fc barcelona', 'barca'],
-  'psg': ['paris saint germain', 'paris saint-germain', 'psg', 'paris sg'],
-  'paris saint germain': ['paris saint germain', 'paris saint-germain', 'psg', 'paris sg'],
-  'bayern': ['bayern munich', 'fc bayern munchen', 'bayern munchen', 'bayern'],
-  'bayern munich': ['bayern munich', 'fc bayern munchen', 'bayern munchen', 'bayern'],
-  'spurs': ['tottenham', 'tottenham hotspur', 'spurs', 'tottenham hotspur fc'],
-  'tottenham': ['tottenham', 'tottenham hotspur', 'spurs', 'tottenham hotspur fc'],
-  'juve': ['juventus', 'juventus fc', 'juve'],
-  'juventus': ['juventus', 'juventus fc', 'juve'],
-  'atletico': ['atletico madrid', 'atletico de madrid', 'club atletico de madrid', 'atletico'],
-  'atletico madrid': ['atletico madrid', 'atletico de madrid', 'club atletico de madrid', 'atletico'],
-  'dortmund': ['borussia dortmund', 'bvb', 'dortmund', 'borussia dortmund 09'],
-  'borussia dortmund': ['borussia dortmund', 'bvb', 'dortmund', 'borussia dortmund 09'],
-  'inter': ['inter milan', 'internazionale', 'inter', 'fc internazionale milano'],
-  'inter milan': ['inter milan', 'internazionale', 'inter', 'fc internazionale milano'],
-  'milan': ['ac milan', 'milan', 'associazone calcio milan'],
-  'ac milan': ['ac milan', 'milan', 'associazone calcio milan'],
-  'arsenal': ['arsenal', 'arsenal fc'],
-  'chelsea': ['chelsea', 'chelsea fc'],
-  'liverpool': ['liverpool', 'liverpool fc'],
-};
+const NAME_MATCH_WEIGHT = 0.6;
+const CLUB_MATCH_WEIGHT = 0.4;
+const HIGH_CONFIDENCE_THRESHOLD = 0.85;
+const MEDIUM_CONFIDENCE_THRESHOLD = 0.65;
+const LOW_CONFIDENCE_THRESHOLD = 0.4;
 
 function transformToClientPlayer(p: any): Player {
   const hasRealPhoto = p.photoUrl && !p.photoUrl.includes('default.jpg');
-  const photo: string =
-    hasRealPhoto && p.photoUrl
-      ? p.photoUrl
-      : generatePlayerPhoto(p.name, p.category, p.primaryPosition || p.position);
+  const photo: string = hasRealPhoto && p.photoUrl
+    ? p.photoUrl
+    : generatePlayerPhoto(p.name, p.category, p.primaryPosition || p.position);
 
   return {
     id: p.id,
@@ -86,8 +59,7 @@ function normalizeString(str: string): string {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/[^a-z0-9\s]/g, '')
     .trim();
 }
 
@@ -97,36 +69,16 @@ function calculateNameSimilarity(inputName: string, playerName: string): number 
 
   if (!input || !target) return 0;
   if (input === target) return 1.0;
+  if (target.includes(input) || input.includes(target)) return 0.9;
 
-  // Substring containment
-  if (target.includes(input) || input.includes(target)) {
-    return 0.95;
-  }
+  const inputTokens = new Set(input.split(/\s+/).filter(Boolean));
+  const targetTokens = new Set(target.split(/\s+/).filter(Boolean));
 
-  const inputTokens = input.split(/\s+/).filter(Boolean);
-  const targetTokens = target.split(/\s+/).filter(Boolean);
-
-  if (inputTokens.length === 0 || targetTokens.length === 0) return 0;
-
-  const targetSet = new Set(targetTokens);
-  const matchingTokens = inputTokens.filter((token) => targetSet.has(token));
-
-  // If all input tokens exist in target (e.g. "Lionel Messi" in "Lionel Andres Messi")
-  if (matchingTokens.length === inputTokens.length) {
-    return 0.92;
-  }
-
-  // Token overlap ratio
+  const intersection = new Set([...inputTokens].filter(x => targetTokens.has(x)));
   const union = new Set([...inputTokens, ...targetTokens]);
-  const jaccard = matchingTokens.length / union.size;
 
-  // If at least one significant token (>= 4 chars) matches
-  const hasSignificantMatch = matchingTokens.some((t) => t.length >= 4);
-  if (hasSignificantMatch && matchingTokens.length >= 1) {
-    return Math.max(0.70, jaccard * 1.3);
-  }
-
-  return jaccard;
+  if (union.size === 0) return 0;
+  return intersection.size / union.size;
 }
 
 function calculateClubSimilarity(inputClub: string, playerClub: string | null): number {
@@ -137,82 +89,61 @@ function calculateClubSimilarity(inputClub: string, playerClub: string | null): 
 
   if (!input || !target) return 0;
   if (input === target) return 1.0;
+  if (target.includes(input) || input.includes(target)) return 0.9;
 
-  // Alias lookup
-  for (const [key, aliases] of Object.entries(CLUB_ALIASES)) {
-    const inputMatches = input.includes(key) || aliases.some((a) => input.includes(a));
-    const targetMatches = target.includes(key) || aliases.some((a) => target.includes(a));
-    if (inputMatches && targetMatches) {
-      return 1.0;
-    }
-  }
+  const inputTokens = new Set(input.split(/\s+/).filter(Boolean));
+  const targetTokens = new Set(target.split(/\s+/).filter(Boolean));
 
-  if (target.includes(input) || input.includes(target)) {
-    return 0.90;
-  }
+  const intersection = new Set([...inputTokens].filter(x => targetTokens.has(x)));
+  const union = new Set([...inputTokens, ...targetTokens]);
 
-  const inputTokens = new Set(input.split(/\s+/).filter((t) => t.length > 2));
-  const targetTokens = new Set(target.split(/\s+/).filter((t) => t.length > 2));
-
-  const intersection = new Set([...inputTokens].filter((x) => targetTokens.has(x)));
-  if (intersection.size > 0) {
-    return 0.85;
-  }
-
-  return 0;
+  if (union.size === 0) return 0;
+  return intersection.size / union.size;
 }
 
-function calculateConfidence(
-  input: ImportRow,
-  player: any
-): { score: number; reason: string } {
+function calculateConfidence(input: ImportRow, player: any): { score: number; reason: string } {
   if (input.playerId && input.playerId === player.id) {
     return { score: 1.0, reason: 'Exact ID match' };
   }
 
   const nameScore = calculateNameSimilarity(input.name || '', player.name || '');
   const hasClubInput = Boolean(input.club && input.club.trim().length > 0);
-  const clubScore = hasClubInput
-    ? calculateClubSimilarity(input.club || '', player.currentTeam || player.team || '')
-    : 0;
+  const clubScore = hasClubInput ? calculateClubSimilarity(input.club || '', player.currentTeam || player.team || '') : 0;
 
-  let finalScore = nameScore;
+  // If club was provided, use weighted average; otherwise name is 100% of the score
+  let weightedScore = hasClubInput 
+    ? (nameScore * NAME_MATCH_WEIGHT) + (clubScore * CLUB_MATCH_WEIGHT)
+    : nameScore;
+
+  // Bonus for role match if role was specified in input
+  if (input.role && player.role && input.role.toLowerCase() === player.role.toLowerCase()) {
+    weightedScore = Math.min(1.0, weightedScore + 0.05);
+  }
+
   let reason = '';
-
-  // Name match is PRIMARY — club is a positive bonus and never a penalty
-  if (nameScore >= 0.85) {
-    // Strong name match -> High Confidence
-    finalScore = clubScore >= 0.8 ? 0.98 : 0.90;
-    reason = clubScore >= 0.8
-      ? `Exact Match (${player.name} · ${player.currentTeam || player.team || 'Pro'})`
-      : `Strong Name Match (${player.name})`;
-  } else if (nameScore >= 0.65) {
-    if (clubScore >= 0.6) {
-      finalScore = 0.88;
-      reason = `Good match with club confirmation (${player.name} · ${player.currentTeam || player.team})`;
+  if (hasClubInput) {
+    if (weightedScore >= HIGH_CONFIDENCE_THRESHOLD) {
+      reason = `Strong match (name: ${Math.round(nameScore * 100)}%, club: ${Math.round(clubScore * 100)}%)`;
+    } else if (weightedScore >= MEDIUM_CONFIDENCE_THRESHOLD) {
+      reason = `Good match (name: ${Math.round(nameScore * 100)}%, club: ${Math.round(clubScore * 100)}%)`;
+    } else if (weightedScore >= LOW_CONFIDENCE_THRESHOLD) {
+      reason = `Partial match (name: ${Math.round(nameScore * 100)}%, club: ${Math.round(clubScore * 100)}%)`;
     } else {
-      finalScore = 0.75;
-      reason = `Good name match (${player.name})`;
-    }
-  } else if (nameScore >= 0.40) {
-    if (clubScore >= 0.8) {
-      finalScore = 0.80;
-      reason = `Club-confirmed match (${player.name} · ${player.currentTeam || player.team})`;
-    } else {
-      finalScore = 0.45;
-      reason = `Partial match (${player.name})`;
+      reason = `Low similarity match (name: ${Math.round(nameScore * 100)}%)`;
     }
   } else {
-    finalScore = 0.20;
-    reason = `Low similarity (${player.name})`;
+    if (weightedScore >= HIGH_CONFIDENCE_THRESHOLD) {
+      reason = `Strong name match (${Math.round(nameScore * 100)}%)`;
+    } else if (weightedScore >= MEDIUM_CONFIDENCE_THRESHOLD) {
+      reason = `Good name match (${Math.round(nameScore * 100)}%)`;
+    } else if (weightedScore >= LOW_CONFIDENCE_THRESHOLD) {
+      reason = `Partial name match (${Math.round(nameScore * 100)}%)`;
+    } else {
+      reason = `Low similarity (${Math.round(nameScore * 100)}%)`;
+    }
   }
 
-  // Bonus for role match if specified
-  if (input.role && player.role && input.role.toLowerCase() === player.role.toLowerCase()) {
-    finalScore = Math.min(1.0, finalScore + 0.05);
-  }
-
-  return { score: finalScore, reason };
+  return { score: weightedScore, reason };
 }
 
 function getConfidenceLabel(score: number): 'high' | 'medium' | 'low' | 'none' {
@@ -223,18 +154,14 @@ function getConfidenceLabel(score: number): 'high' | 'medium' | 'low' | 'none' {
 }
 
 function parseCSVString(content: string): ImportRow[] {
-  const lines = content.trim().split(/\r?\n/).filter((l) => l.trim().length > 0);
+  const lines = content.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
   if (lines.length < 2) return [];
 
-  const headers = lines[0]
-    .split(',')
-    .map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
   const rows: ImportRow[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i]
-      .split(',')
-      .map((v) => v.trim().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
+    const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
     const row: Record<string, string> = {};
 
     headers.forEach((header, idx) => {
@@ -298,7 +225,7 @@ export async function POST(request: NextRequest) {
       const text = await request.text();
       try {
         const data = JSON.parse(text);
-        rows = Array.isArray(data) ? data : data.players || data.rows || [];
+        rows = Array.isArray(data) ? data : data.rows || data.players || [];
       } catch {
         rows = parseCSVString(text);
       }
@@ -330,39 +257,28 @@ export async function POST(request: NextRequest) {
         }
 
         if (dbCandidates.length === 0) {
-          // 1. Primary search by player name
-          let ftsResults = await service.searchPlayers(row.name, 20);
+          // First search by player name
+          let ftsResults = await service.searchPlayers(row.name, 15);
 
-          // 2. If 0 results, try individual tokens (e.g. last name or first name)
-          if (ftsResults.length === 0) {
-            const tokens = row.name.trim().split(/\s+/).filter((t) => t.length >= 3);
-            for (const token of tokens) {
-              const tokenResults = await service.searchPlayers(token, 10);
-              if (tokenResults.length > 0) {
-                ftsResults = tokenResults;
-                break;
-              }
-            }
+          // If no results and club was provided, try combined search or vice versa
+          if (ftsResults.length === 0 && row.club) {
+            ftsResults = await service.searchPlayers(`${row.name} ${row.club}`, 15);
           }
 
           dbCandidates = [...ftsResults];
 
-          // 3. Check custom player additions in local DB
           try {
             const cleanName = row.name.replace(/[^a-zA-Z0-9\s]/g, '').trim();
             if (cleanName) {
-              const customPlayers = db
-                .prepare(`
-                  SELECT * FROM players
-                  WHERE source = 'custom'
-                  AND search_text LIKE ?
-                  ORDER BY created_at DESC
-                  LIMIT 10
-                `)
-                .all(`%${cleanName.toLowerCase()}%`)
-                .map(rowToPlayer);
+              const customPlayers = db.prepare(`
+                SELECT * FROM players
+                WHERE source = 'custom'
+                AND search_text LIKE ?
+                ORDER BY created_at DESC
+                LIMIT 10
+              `).all(`%${cleanName.toLowerCase()}%`).map(rowToPlayer);
 
-              const seen = new Set(dbCandidates.map((p) => p.id));
+              const seen = new Set(dbCandidates.map(p => p.id));
               for (const c of customPlayers) {
                 if (!seen.has(c.id)) {
                   dbCandidates.push(c);
@@ -371,7 +287,7 @@ export async function POST(request: NextRequest) {
               }
             }
           } catch (customErr) {
-            // Ignore custom lookup error
+            console.warn('Custom player query failed:', customErr);
           }
         }
       } catch (searchErr) {
@@ -393,7 +309,7 @@ export async function POST(request: NextRequest) {
 
       results.push({
         inputRow: row,
-        matches: scored.map((s) => s.player),
+        matches: scored.map(s => s.player),
         bestMatch,
         confidence: getConfidenceLabel(bestScore),
         reason: bestReason,
@@ -404,7 +320,7 @@ export async function POST(request: NextRequest) {
       success: true,
       results,
       total: rows.length,
-      matched: results.filter((r) => r.confidence === 'high' || r.confidence === 'medium').length,
+      matched: results.filter(r => r.confidence !== 'none').length,
     });
   } catch (error: any) {
     console.error('Bulk match error:', error);

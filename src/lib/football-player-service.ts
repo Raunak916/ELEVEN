@@ -2,23 +2,15 @@
  * Football Player Service (Server-side only)
  *
  * Abstraction layer for player search across multiple data sources.
- * Currently uses local SQLite database (transfermarkt-datasets + curated catalog).
+ * Currently uses local SQLite database (transfermarkt-datasets + future Wikidata).
+ * Designed to be easily extensible for foot.io, API-Football, etc.
  *
  * IMPORTANT: This file must ONLY be imported in server-side code (API routes, server components).
+ * For client-side, use football-player-client.ts
  */
 
 import { getPlayerDB, rowToPlayer, Player } from './player-db';
 import { PLAYERS } from './players-data';
-
-function stripAccents(str: string): string {
-  if (!str) return '';
-  return str
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .trim();
-}
 
 function toDBPlayer(p: any): Player {
   return {
@@ -59,36 +51,19 @@ export class FootballPlayerService {
   }
 
   /**
-   * Search players by name with high-recall fuzzy & multi-token matching
+   * Search players by name with fuzzy matching using FTS5, LIKE, and curated catalog
    */
   async searchPlayers(query: string, limit = 50): Promise<Player[]> {
-    const rawQuery = (query || '').trim();
-    if (!rawQuery) {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+      // Return top famous players if query is empty
       return PLAYERS.slice(0, limit).map(toDBPlayer);
     }
 
-    const cleanQuery = stripAccents(rawQuery);
-    const queryTokens = cleanQuery.split(/\s+/).filter((t) => t.length > 0);
-
     // 1. Check curated catalog (Legends, Icons, Heroes, Stars)
     const curatedMatches = PLAYERS.filter((p) => {
-      const normalizedName = stripAccents(p.name);
-      const searchable = stripAccents(
-        `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`
-      );
-
-      // Exact or substring match
-      if (normalizedName.includes(cleanQuery) || searchable.includes(cleanQuery)) {
-        return true;
-      }
-
-      // Multi-token match: all non-trivial query tokens exist in searchable
-      if (queryTokens.length > 1) {
-        const allTokensPresent = queryTokens.every((token) => searchable.includes(token));
-        if (allTokensPresent) return true;
-      }
-
-      return false;
+      const searchable = `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`.toLowerCase();
+      return searchable.includes(normalized);
     }).map(toDBPlayer);
 
     let dbMatches: Player[] = [];
@@ -96,10 +71,15 @@ export class FootballPlayerService {
     try {
       const db = this.getDb();
 
-      // 2. FTS5 Search with prefix wildcard
-      if (queryTokens.length > 0) {
+      // Sanitize search query: keep only alphanumeric characters for FTS prefix matching
+      const cleanTerms = normalized
+        .replace(/[^a-zA-Z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(term => term.length > 0);
+
+      if (cleanTerms.length > 0) {
         try {
-          const ftsQuery = queryTokens.map((term) => `"${term}"*`).join(' ');
+          const ftsQuery = cleanTerms.map(term => `"${term}"*`).join(' ');
           const rows = db.prepare(`
             SELECT p.*
             FROM players_fts fts
@@ -121,19 +101,16 @@ export class FootballPlayerService {
             dbMatches = rows.map(rowToPlayer);
           }
         } catch {
-          // FTS5 table may not exist, continue to multi-token LIKE fallback
+          // FTS5 table may not exist, continue to LIKE query
         }
       }
 
-      // 3. Multi-token LIKE fallback
-      if (dbMatches.length < limit && queryTokens.length > 0) {
+      // Fallback to LIKE query if FTS returned nothing
+      if (dbMatches.length === 0) {
         try {
-          const likeConditions = queryTokens.map(() => `search_text LIKE ?`).join(' AND ');
-          const likeParams = queryTokens.map((t) => `%${t}%`);
-
           const rows = db.prepare(`
             SELECT * FROM players
-            WHERE ${likeConditions} OR search_text LIKE ?
+            WHERE search_text LIKE ? OR name LIKE ?
             ORDER BY 
               CASE category
                 WHEN 'LEGEND' THEN 4
@@ -143,39 +120,13 @@ export class FootballPlayerService {
               END DESC,
               COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
             LIMIT ?
-          `).all(...likeParams, `%${cleanQuery}%`, limit);
+          `).all(`%${normalized}%`, `%${normalized}%`, limit);
 
-          const existingIds = new Set(dbMatches.map((p) => p.id));
-          for (const row of rows) {
-            const player = rowToPlayer(row);
-            if (!existingIds.has(player.id)) {
-              dbMatches.push(player);
-              existingIds.add(player.id);
-            }
+          if (rows.length > 0) {
+            dbMatches = rows.map(rowToPlayer);
           }
         } catch (likeErr) {
           console.warn('LIKE query warning:', likeErr);
-        }
-      }
-
-      // 4. Single-token fallback on last name if still no results
-      if (dbMatches.length === 0 && queryTokens.length > 1) {
-        const lastNameToken = queryTokens[queryTokens.length - 1];
-        if (lastNameToken.length >= 3) {
-          try {
-            const rows = db.prepare(`
-              SELECT * FROM players
-              WHERE search_text LIKE ?
-              ORDER BY COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
-              LIMIT ?
-            `).all(`%${lastNameToken}%`, limit);
-
-            if (rows.length > 0) {
-              dbMatches = rows.map(rowToPlayer);
-            }
-          } catch {
-            // Ignore
-          }
         }
       }
     } catch (err) {
@@ -184,10 +135,10 @@ export class FootballPlayerService {
 
     // Combine curated matches first, then DB matches, deduplicating by normalized name
     const combined: Player[] = [...curatedMatches];
-    const seenNames = new Set(curatedMatches.map((p) => stripAccents(p.name)));
+    const seenNames = new Set(curatedMatches.map(p => p.name.toLowerCase()));
 
     for (const p of dbMatches) {
-      const nameKey = stripAccents(p.name);
+      const nameKey = p.name.toLowerCase();
       if (!seenNames.has(nameKey)) {
         combined.push(p);
         seenNames.add(nameKey);
@@ -208,50 +159,83 @@ export class FootballPlayerService {
     } catch {
       // fallback
     }
-
-    const curated = PLAYERS.find((p) => p.id === id);
-    if (curated) return toDBPlayer(curated);
-
-    return null;
+    const found = PLAYERS.find(p => p.id === id);
+    return found ? toDBPlayer(found) : null;
   }
 
   /**
-   * Get player statistics
+   * Get player by external ID (transfermarkt, wikidata, etc.)
    */
-  async getStats(): Promise<{
-    totalPlayers: number;
-    legendCount: number;
-    iconCount: number;
-    heroCount: number;
-    currentCount: number;
-  }> {
+  async getPlayerByExternalId(source: string, externalId: string): Promise<Player | null> {
     try {
       const db = this.getDb();
-      const stats = db.prepare(`
-        SELECT 
-          COUNT(*) as total,
-          SUM(CASE WHEN category = 'LEGEND' THEN 1 ELSE 0 END) as legends,
-          SUM(CASE WHEN category = 'ICON' THEN 1 ELSE 0 END) as icons,
-          SUM(CASE WHEN category = 'HERO' THEN 1 ELSE 0 END) as heroes,
-          SUM(CASE WHEN category = 'CURRENT' THEN 1 ELSE 0 END) as currents
-        FROM players
-      `).get() as any;
-
-      return {
-        totalPlayers: stats.total || PLAYERS.length,
-        legendCount: stats.legends || PLAYERS.filter((p) => p.category === 'LEGEND').length,
-        iconCount: stats.icons || PLAYERS.filter((p) => p.category === 'ICON').length,
-        heroCount: stats.heroes || PLAYERS.filter((p) => p.category === 'HERO').length,
-        currentCount: stats.currents || PLAYERS.filter((p) => p.category === 'CURRENT').length,
-      };
+      const row = db.prepare(`
+        SELECT p.* FROM players p
+        JOIN player_external_ids e ON p.id = e.player_id
+        WHERE e.source = ? AND e.external_id = ?
+      `).get(source, externalId) as unknown;
+      return row ? rowToPlayer(row) : null;
     } catch {
-      return {
-        totalPlayers: PLAYERS.length,
-        legendCount: PLAYERS.filter((p) => p.category === 'LEGEND').length,
-        iconCount: PLAYERS.filter((p) => p.category === 'ICON').length,
-        heroCount: PLAYERS.filter((p) => p.category === 'HERO').length,
-        currentCount: PLAYERS.filter((p) => p.category === 'CURRENT').length,
-      };
+      return null;
+    }
+  }
+
+  /**
+   * Get players by category
+   */
+  async getPlayersByCategory(category: Player['category'], limit = 100): Promise<Player[]> {
+    try {
+      const db = this.getDb();
+      const rows = db.prepare(`
+        SELECT * FROM players WHERE category = ? ORDER BY name LIMIT ?
+      `).all(category, limit) as unknown[];
+      return rows.map(rowToPlayer);
+    } catch {
+      return PLAYERS.filter(p => p.category === category).slice(0, limit).map(toDBPlayer);
+    }
+  }
+
+  /**
+   * Get players by nationality
+   */
+  async getPlayersByNationality(nationalityCode: string, limit = 100): Promise<Player[]> {
+    try {
+      const db = this.getDb();
+      const rows = db.prepare(`
+        SELECT * FROM players WHERE nationality_code = ? ORDER BY name LIMIT ?
+      `).all(nationalityCode.toUpperCase(), limit);
+      return rows.map(rowToPlayer);
+    } catch {
+      return PLAYERS.filter(p => p.nationalityCode?.toUpperCase() === nationalityCode.toUpperCase()).slice(0, limit).map(toDBPlayer);
+    }
+  }
+
+  /**
+   * Get random players for discovery
+   */
+  async getRandomPlayers(count = 20): Promise<Player[]> {
+    try {
+      const db = this.getDb();
+      const rows = db.prepare(`
+        SELECT * FROM players ORDER BY RANDOM() LIMIT ?
+      `).all(count);
+      return rows.map(rowToPlayer);
+    } catch {
+      const shuffled = [...PLAYERS].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count).map(toDBPlayer);
+    }
+  }
+
+  /**
+   * Get total player count
+   */
+  async getTotalCount(): Promise<number> {
+    try {
+      const db = this.getDb();
+      const row = db.prepare('SELECT COUNT(*) as c FROM players').get() as { c: number };
+      return row.c;
+    } catch {
+      return PLAYERS.length;
     }
   }
 }
