@@ -210,6 +210,46 @@ export function generateUniqueRoomCode(length: number = 4): string {
   return fallbackCode;
 }
 
+export function ensureRoom(code: string, hostId?: string): Room {
+  const cleanCode = (code || '').trim().toUpperCase();
+  const existing = getRoomByCode(cleanCode);
+  if (existing) return existing;
+
+  const db = getRoomDB();
+  const id = uuidv4();
+  const now = new Date().toISOString();
+  const finalHostId = hostId || uuidv4();
+  const initialStatus: RoomStatus = 'LIVE';
+  const settingsJson = JSON.stringify({ currency: 'INR', maxTeamBudget: 20000000 });
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO rooms (id, code, host_id, status, settings_json, participants_json, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(code) DO UPDATE SET updated_at = excluded.updated_at
+    `);
+    stmt.run(id, cleanCode, finalHostId, initialStatus, settingsJson, JSON.stringify([]), now, now);
+  } catch (err) {
+    console.warn(`Failed to insert room ${cleanCode} to SQLite:`, err);
+  }
+
+  const room: Room = {
+    id,
+    code: cleanCode,
+    hostId: finalHostId,
+    status: initialStatus,
+    settings: { currency: 'INR', maxTeamBudget: 20000000 },
+    createdAt: now,
+    updatedAt: now,
+    participants: [],
+  };
+
+  roomsCache.set(cleanCode, room);
+  roomsCache.set(id, room);
+
+  return room;
+}
+
 export function createRoom(
   hostId?: string,
   settings?: { currency: string; maxTeamBudget: number }
@@ -222,12 +262,15 @@ export function createRoom(
   const initialStatus: RoomStatus = 'CREATED';
   const settingsJson = JSON.stringify(settings || { currency: 'INR', maxTeamBudget: 20000000 });
 
-  const stmt = db.prepare(`
-    INSERT INTO rooms (id, code, host_id, status, settings_json, participants_json, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  stmt.run(id, code, finalHostId, initialStatus, settingsJson, JSON.stringify([]), now, now);
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO rooms (id, code, host_id, status, settings_json, participants_json, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(id, code, finalHostId, initialStatus, settingsJson, JSON.stringify([]), now, now);
+  } catch (err) {
+    console.warn('Failed to insert new room to SQLite:', err);
+  }
 
   const room: Room = {
     id,
@@ -301,10 +344,14 @@ export function joinRoom(
     return { success: false, error: 'Please enter a room code.' };
   }
 
-  const room = getRoomByCode(cleanCode);
-
+  // Ensure room exists across any serverless lambda container
+  let room = getRoomByCode(cleanCode);
   if (!room) {
-    return { success: false, error: `Room "${cleanCode}" not found. Please check the code and try again.` };
+    if (cleanCode.length >= 3) {
+      room = ensureRoom(cleanCode);
+    } else {
+      return { success: false, error: `Room "${cleanCode}" not found. Please check the code and try again.` };
+    }
   }
 
   if (room.status === 'CLOSED') {
@@ -422,8 +469,7 @@ export function updateRoomDraw(
   currentDraw: { drawnPlayer: any; drawPhase: string } | null
 ): boolean {
   if (!code) return false;
-  const room = getRoomByCode(code);
-  if (!room) return false;
+  const room = ensureRoom(code);
 
   const now = new Date().toISOString();
   const drawJson = currentDraw ? JSON.stringify(currentDraw) : null;
@@ -460,8 +506,7 @@ export function updateRoomRoster(
   settings?: { currency: string; maxTeamBudget: number } | null
 ): boolean {
   if (!code) return false;
-  const room = getRoomByCode(code);
-  if (!room) return false;
+  const room = ensureRoom(code);
 
   const now = new Date().toISOString();
   const rosterJson = rosterState ? JSON.stringify(rosterState) : null;
@@ -503,8 +548,7 @@ export function updateRoomRoster(
 
 export function updateRoomStatus(code: string, status: RoomStatus): boolean {
   if (!code) return false;
-  const room = getRoomByCode(code);
-  if (!room) return false;
+  const room = ensureRoom(code);
 
   const now = new Date().toISOString();
 
@@ -537,8 +581,7 @@ export function updateRoomCards(
   cardsState: { powerCards: any[]; sickCards: any[] } | null
 ): boolean {
   if (!code) return false;
-  const room = getRoomByCode(code);
-  if (!room) return false;
+  const room = ensureRoom(code);
 
   const now = new Date().toISOString();
   const cardsJson = cardsState ? JSON.stringify(cardsState) : null;
