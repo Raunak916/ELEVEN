@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
 import { SidebarMusicPlayer } from './sidebar-music-player';
 
 const NAV_ITEMS = [
@@ -19,15 +20,26 @@ const NAV_ITEMS = [
   { href: '/auction/settings', number: '09', label: 'SETTINGS' },
 ] as const;
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
 
-  return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-[12rem] min-w-[12rem] max-w-[12rem] flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col overflow-hidden">
-      {/* Top: Logo Only */}
-      <div className="flex h-28 items-center justify-center px-4 border-b border-sidebar-border">
-        <Link href="/" className="flex items-center justify-center group" aria-label="Eleven Home">
-          <div className="relative h-20 w-20 transition-transform duration-300 group-hover:scale-105">
+  const handleNavClick = () => {
+    if (onMobileClose) {
+      onMobileClose();
+    }
+  };
+
+  const navContent = (
+    <div className="h-full flex flex-col justify-between overflow-hidden">
+      {/* Top: Logo & Close Button for Mobile */}
+      <div className="flex h-20 md:h-28 items-center justify-between md:justify-center px-4 border-b border-sidebar-border shrink-0">
+        <Link href="/" onClick={handleNavClick} className="flex items-center justify-center group" aria-label="Eleven Home">
+          <div className="relative h-14 w-14 md:h-20 md:w-20 transition-transform duration-300 group-hover:scale-105">
             <Image
               src="/logo/eleven.png"
               alt="Eleven Logo"
@@ -37,22 +49,35 @@ export function Sidebar() {
             />
           </div>
         </Link>
+
+        {/* Mobile Close Button */}
+        {onMobileClose && (
+          <button
+            type="button"
+            onClick={onMobileClose}
+            className="md:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white border border-white/10 transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 overflow-y-auto">
+      {/* Navigation Links */}
+      <nav className="flex-1 px-3 md:px-4 py-4 md:py-6 overflow-y-auto scrollbar-thin">
         <ul className="space-y-1" role="navigation" aria-label="Main navigation">
-          {NAV_ITEMS.map((item, index) => {
+          {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={handleNavClick}
                   className={cn(
                     'relative flex items-center gap-3 px-3 py-2.5 rounded-xl',
-                    'transition-colors duration-200 ease-out',
+                    'transition-all duration-200 ease-out',
                     'hover:bg-sidebar-accent/70 active:scale-[0.98]',
-                    isActive ? 'bg-sidebar-accent text-foreground font-semibold' : 'text-muted-foreground'
+                    isActive ? 'bg-sidebar-accent text-foreground font-semibold shadow-sm' : 'text-muted-foreground'
                   )}
                   aria-current={isActive ? 'page' : undefined}
                 >
@@ -92,7 +117,51 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom: Music Player */}
-      <SidebarMusicPlayer />
-    </aside>
+      <div className="shrink-0">
+        <SidebarMusicPlayer />
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* ===================================================================== */}
+      {/* DESKTOP SIDEBAR (md: >= 768px) - Exact original fixed docking         */}
+      {/* ===================================================================== */}
+      <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-[12rem] min-w-[12rem] max-w-[12rem] flex-shrink-0 bg-sidebar border-r border-sidebar-border flex-col overflow-hidden">
+        {navContent}
+      </aside>
+
+      {/* ===================================================================== */}
+      {/* MOBILE DRAWER SIDEBAR (< md: 768px) - Smooth slide-over + backdrop    */}
+      {/* ===================================================================== */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={onMobileClose}
+              className="md:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md"
+              aria-hidden="true"
+            />
+
+            {/* Mobile Slide-Over Panel */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+              className="md:hidden fixed left-0 top-0 bottom-0 z-50 w-[15.5rem] bg-[#0c1017]/98 border-r border-white/15 shadow-2xl backdrop-blur-2xl flex flex-col"
+            >
+              {navContent}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

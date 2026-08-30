@@ -17,11 +17,11 @@ export function PageHeader({ lines, description, action, className }: PageHeader
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className={cn('mb-10 lg:mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6', className)}
+      className={cn('mb-6 sm:mb-10 lg:mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6', className)}
     >
       <div className="flex-1 min-w-0">
         {/* Editorial split heading */}
-        <div className="editorial-heading mb-4">
+        <div className="editorial-heading mb-2 sm:mb-4">
           {lines.map((line, index) => (
             <motion.span
               key={index}
