@@ -94,8 +94,90 @@ export default function AuctionHistoryDetailPage({ params }: { params: Promise<{
   React.useEffect(() => {
     const loadAuction = async () => {
       const resolvedParams = await params;
+      const targetId = resolvedParams.id;
       if (hydrated) {
-        const snapshot = getAuctionSnapshot(resolvedParams.id);
+        let snapshot = getAuctionSnapshot(targetId);
+        if (!snapshot) {
+          const history = useAuctionStore.getState().history;
+          snapshot = history.find(
+            (s) => s.id === targetId || s.roomCode === targetId || s.auctionId === targetId
+          );
+        }
+
+        // If not found in local storage, query room API by code
+        if (!snapshot && targetId) {
+          try {
+            const res = await fetch(`/api/rooms?code=${encodeURIComponent(targetId)}`);
+            if (res.ok) {
+              const data = await res.json();
+              const room = data.room;
+              if (room && room.rosterState) {
+                const teams = room.rosterState.teams || [];
+                const assignedPlayers = room.rosterState.assignedPlayers || [];
+                const roomCurrency = room.settings?.currency || 'INR';
+                const maxBudget = room.settings?.maxTeamBudget || 20000000;
+
+                const participants = teams.map((team: any) => {
+                  const teamPlayers = assignedPlayers.filter(
+                    (p: any) => p.teamId === team.id && p.soldPrice !== null && p.soldPrice !== undefined
+                  );
+                  const playerPurchases = teamPlayers.reduce(
+                    (sum: number, p: any) => sum + (p.soldPrice ?? p.basePrice),
+                    0
+                  );
+                  const otherExpenses = (team.otherExpenses || []).reduce(
+                    (sum: number, exp: any) => sum + exp.amount,
+                    0
+                  );
+                  const budgetSpent =
+                    team.customBudgetSpent !== undefined
+                      ? team.customBudgetSpent
+                      : playerPurchases + otherExpenses;
+                  const budgetLeft = (team.customMaxBudget ?? maxBudget) - budgetSpent;
+
+                  return {
+                    id: team.id,
+                    name: team.name,
+                    owner: team.owner,
+                    budgetLeft,
+                    budgetSpent,
+                    playersAcquired: teamPlayers.length,
+                    players: teamPlayers.map((p: any) => ({
+                      playerId: p.id,
+                      playerName: p.player?.name || p.name || 'Player',
+                      role: p.player?.role || p.role || 'Midfielder',
+                      basePrice: p.basePrice || 0,
+                      soldPrice: p.soldPrice || p.basePrice || 0,
+                      currency: p.currency || roomCurrency,
+                    })),
+                  };
+                });
+
+                const soldPlayers = assignedPlayers.filter(
+                  (p: any) => p.soldPrice !== null && p.soldPrice !== undefined
+                );
+
+                snapshot = {
+                  id: room.id || targetId,
+                  auctionId: room.id || targetId,
+                  roomCode: room.code,
+                  name: `Auction ${room.code}`,
+                  completedAt: room.updatedAt || room.createdAt || new Date().toISOString(),
+                  settings: {
+                    currency: roomCurrency,
+                    maxTeamBudget: maxBudget,
+                  },
+                  participants,
+                  totalPlayers: soldPlayers.length,
+                  totalParticipants: teams.length,
+                };
+              }
+            }
+          } catch (netErr) {
+            console.warn('Failed to fetch snapshot from room API:', netErr);
+          }
+        }
+
         setAuction(snapshot || null);
       }
       setLoading(false);
