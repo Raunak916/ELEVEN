@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { updateRoomStatus, updateRoomRoster } from '@/lib/room-db';
+import { updateRoomStatus, updateRoomRoster, updateRoomDraw } from '@/lib/room-db';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { code, teams, assignedPlayers, settings } = body;
+    const { code, teams, assignedPlayers, settings, version } = body;
 
     if (!code) {
       return NextResponse.json(
@@ -13,11 +13,14 @@ export async function POST(req: Request) {
       );
     }
 
+    const effectiveVersion = version && version > 0 ? version : Date.now();
+
     if (Array.isArray(teams) && Array.isArray(assignedPlayers)) {
-      updateRoomRoster(code, { teams, assignedPlayers }, settings || undefined);
+      updateRoomRoster(code, { teams, assignedPlayers }, settings || undefined, effectiveVersion);
     }
 
-    const updated = updateRoomStatus(code, 'COMPLETED');
+    updateRoomDraw(code, null, effectiveVersion);
+    const updated = updateRoomStatus(code, 'COMPLETED', effectiveVersion);
     if (!updated) {
       return NextResponse.json(
         { success: false, error: 'Failed to update room status' },

@@ -967,6 +967,7 @@ export default function SettingsPage() {
                                     currency: currentSettings.currency,
                                     maxTeamBudget: currentSettings.maxTeamBudget,
                                   },
+                                  version: Date.now(),
                                 }),
                               });
                             } catch (err) {

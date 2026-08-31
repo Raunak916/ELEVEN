@@ -97,7 +97,8 @@ export const useRoomStore = create<RoomState>()(
           const room = data.room;
 
           // Sync server room status to local hostedRoom state if changed
-          if (room && hosted && hosted.status !== room.status) {
+          // TERMINAL STATUS RULE: If local is already COMPLETED, never revert back to LIVE or CREATED
+          if (room && hosted && hosted.status !== 'COMPLETED' && hosted.status !== room.status) {
             set({
               hostedRoom: {
                 ...hosted,

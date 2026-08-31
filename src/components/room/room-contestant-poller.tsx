@@ -193,10 +193,14 @@ export function RoomContestantPoller() {
           }
         }
 
-        // 5. Sync room status (e.g. COMPLETED or LIVE)
+        // 5. Sync room status with Monotonic Lifecycle (COMPLETED is terminal)
         if (room.status) {
           const currentSession = useRoomStore.getState().activeSession;
-          if (currentSession && currentSession.status !== room.status) {
+          if (
+            currentSession &&
+            currentSession.status !== 'COMPLETED' &&
+            currentSession.status !== room.status
+          ) {
             useRoomStore.setState({
               activeSession: {
                 ...currentSession,

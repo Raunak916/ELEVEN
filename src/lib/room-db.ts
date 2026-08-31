@@ -488,7 +488,12 @@ export function updateRoomDraw(
   const now = new Date().toISOString();
   const effectiveVersion = version && version > 0 ? version : Date.now();
   const drawJson = currentDraw ? JSON.stringify(currentDraw) : null;
-  const nextStatus: RoomStatus = currentDraw?.drawnPlayer ? 'LIVE' : room.status;
+  const nextStatus: RoomStatus =
+    room.status === 'COMPLETED'
+      ? 'COMPLETED'
+      : currentDraw?.drawnPlayer
+      ? 'LIVE'
+      : room.status;
 
   try {
     const db = getRoomDB();
