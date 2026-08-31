@@ -511,23 +511,43 @@ export function updateRoomRoster(
   const now = new Date().toISOString();
   const rosterJson = rosterState ? JSON.stringify(rosterState) : null;
 
+  // Cumulative participant merge: populate this container's participants with all host teams
+  const updatedParticipants = [...room.participants];
+  if (rosterState?.teams && Array.isArray(rosterState.teams)) {
+    for (const t of rosterState.teams) {
+      const exists = updatedParticipants.some((p) => p.id === t.id);
+      if (!exists) {
+        updatedParticipants.push({
+          id: t.id,
+          name: t.owner || `Manager ${t.id}`,
+          teamName: t.name || `Club ${t.id}`,
+          role: 'CONTESTANT',
+          joinedAt: t.createdAt || now,
+          lastSeenAt: now,
+        });
+      }
+    }
+  }
+
+  const participantsJson = JSON.stringify(updatedParticipants);
+
   try {
     const db = getRoomDB();
     if (settings) {
       const settingsJson = JSON.stringify(settings);
       const stmt = db.prepare(`
         UPDATE rooms
-        SET roster_state_json = ?, settings_json = ?, updated_at = ?
+        SET roster_state_json = ?, settings_json = ?, participants_json = ?, updated_at = ?
         WHERE id = ?
       `);
-      stmt.run(rosterJson, settingsJson, now, room.id);
+      stmt.run(rosterJson, settingsJson, participantsJson, now, room.id);
     } else {
       const stmt = db.prepare(`
         UPDATE rooms
-        SET roster_state_json = ?, updated_at = ?
+        SET roster_state_json = ?, participants_json = ?, updated_at = ?
         WHERE id = ?
       `);
-      stmt.run(rosterJson, now, room.id);
+      stmt.run(rosterJson, participantsJson, now, room.id);
     }
   } catch (err) {
     console.warn('Failed to persist roster update to SQLite:', err);
@@ -536,6 +556,7 @@ export function updateRoomRoster(
   const updatedRoom: Room = {
     ...room,
     rosterState,
+    participants: updatedParticipants,
     settings: settings || room.settings,
     updatedAt: now,
   };

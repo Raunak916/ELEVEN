@@ -48,33 +48,44 @@ export function RoomHostPoller() {
         const currentTeams = useAuctionStore.getState().teams;
         const contestantParticipants = participants.filter((p) => p.role === 'CONTESTANT');
         
-        // In Room Mode, teams are derived from the connected contestants in the room
-        const roomTeams: Team[] = contestantParticipants.map((p) => {
+        // Additive Cumulative Merging: Never remove an already connected contestant across serverless polls
+        const updatedTeams: Team[] = [...currentTeams];
+        let hasChanges = false;
+
+        for (const p of contestantParticipants) {
           const clubId = p.id;
           const isGenericTeam = !p.teamName || p.teamName === `Team ${clubId}` || p.teamName === `Club ${clubId}`;
           const isGenericOwner = !p.name || p.name === `Manager ${clubId}`;
-          const existing = currentTeams.find((t) => t.id === clubId);
 
-          return {
-            id: clubId,
-            name: !isGenericTeam ? p.teamName : (existing?.name || `Club ${clubId}`),
-            owner: !isGenericOwner ? p.name : (existing?.owner || `Manager ${clubId}`),
-            createdAt: existing?.createdAt || p.joinedAt || new Date().toISOString(),
-            customMaxBudget: existing?.customMaxBudget,
-            customBudgetSpent: existing?.customBudgetSpent,
-            otherExpenses: existing?.otherExpenses || [],
-          };
-        });
+          const existingIdx = updatedTeams.findIndex((t) => t.id === clubId);
+          if (existingIdx === -1) {
+            // New contestant joined -> append to tournament teams list!
+            updatedTeams.push({
+              id: clubId,
+              name: !isGenericTeam ? p.teamName : `Club ${clubId}`,
+              owner: !isGenericOwner ? p.name : `Manager ${clubId}`,
+              createdAt: p.joinedAt || new Date().toISOString(),
+              otherExpenses: [],
+            });
+            hasChanges = true;
+          } else {
+            // Existing contestant -> update names if customized
+            const existing = updatedTeams[existingIdx];
+            const newName = !isGenericTeam ? p.teamName : existing.name;
+            const newOwner = !isGenericOwner ? p.name : existing.owner;
+            if (existing.name !== newName || existing.owner !== newOwner) {
+              updatedTeams[existingIdx] = {
+                ...existing,
+                name: newName,
+                owner: newOwner,
+              };
+              hasChanges = true;
+            }
+          }
+        }
 
-        const isDifferent =
-          roomTeams.length !== currentTeams.length ||
-          roomTeams.some((rt, idx) => {
-            const ct = currentTeams[idx];
-            return !ct || ct.id !== rt.id || ct.name !== rt.name || ct.owner !== rt.owner;
-          });
-
-        if (isDifferent) {
-          useAuctionStore.setState({ teams: roomTeams });
+        if (hasChanges) {
+          useAuctionStore.setState({ teams: updatedTeams });
         }
       } catch (err) {
         console.warn('Host room participant sync warning:', err);
