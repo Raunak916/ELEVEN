@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       sickCards: Array.isArray(sickCards) ? sickCards : [],
     };
 
-    updateRoomCards(code, cardsState);
+    await updateRoomCards(code, cardsState);
 
     return NextResponse.json({
       success: true,

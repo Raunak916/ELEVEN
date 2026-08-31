@@ -13,12 +13,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = joinRoom(code, {
-      id: participantId,
-      name: name || undefined,
-      teamName: teamName || undefined,
-      role: 'CONTESTANT',
-    });
+    const result = await joinRoom(code, {
+          id: participantId,
+          name: name || undefined,
+          teamName: teamName || undefined,
+          role: 'CONTESTANT',
+        });
 
     if (!result.success) {
       return NextResponse.json(

@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         }
       : null;
 
-    updateRoomDraw(code, currentDraw, version);
+    await updateRoomDraw(code, currentDraw, version);
 
     return NextResponse.json({
       success: true,

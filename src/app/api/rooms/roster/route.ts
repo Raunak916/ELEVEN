@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       assignedPlayers: assignedPlayers || [],
     };
 
-    updateRoomRoster(code, rosterState, settings || null, version);
+    await updateRoomRoster(code, rosterState, settings || null, version);
 
     return NextResponse.json({
       success: true,

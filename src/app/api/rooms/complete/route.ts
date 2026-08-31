@@ -16,11 +16,11 @@ export async function POST(req: Request) {
     const effectiveVersion = version && version > 0 ? version : Date.now();
 
     if (Array.isArray(teams) && Array.isArray(assignedPlayers)) {
-      updateRoomRoster(code, { teams, assignedPlayers }, settings || undefined, effectiveVersion);
+      await updateRoomRoster(code, { teams, assignedPlayers }, settings || undefined, effectiveVersion);
     }
 
-    updateRoomDraw(code, null, effectiveVersion);
-    const updated = updateRoomStatus(code, 'COMPLETED', effectiveVersion);
+    await updateRoomDraw(code, null, effectiveVersion);
+    const updated = await updateRoomStatus(code, 'COMPLETED', effectiveVersion);
     if (!updated) {
       return NextResponse.json(
         { success: false, error: 'Failed to update room status' },

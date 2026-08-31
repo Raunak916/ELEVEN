@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       );
     }
 
-    leaveRoom(roomId, participantId);
+    await leaveRoom(roomId, participantId);
 
     return NextResponse.json({
       success: true,

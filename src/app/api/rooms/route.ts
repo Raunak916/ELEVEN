@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       // Body may be empty, which is totally fine
     }
 
-    const room = createRoom(hostId, settings);
+    const room = await createRoom(hostId, settings);
     return NextResponse.json({
       success: true,
       room,
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const room = getRoomByCode(code);
+    const room = await getRoomByCode(code);
     if (!room) {
       return NextResponse.json(
         { success: false, error: 'Room not found' },

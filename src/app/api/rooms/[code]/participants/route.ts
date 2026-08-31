@@ -14,7 +14,7 @@ export async function GET(
       );
     }
 
-    const room = getRoomByCode(code);
+    const room = await getRoomByCode(code);
     if (!room) {
       return NextResponse.json(
         { success: false, error: 'Room not found' },
