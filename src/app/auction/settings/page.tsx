@@ -21,7 +21,7 @@ import { AuctionPlayer, CURRENCY_LOCALES, Player, PlayerRole, Currency, PlayerCa
 
 export default function SettingsPage() {
   const { auctionPlayers, setAuctionPlayers, settings, updateSettings, teams, addTeam, removeTeam, completeAuction } = useAuctionStore();
-  const { hostedRoom, createdCode, isCreating, isJoining, createRoom, joinRoom, markHostedRoomCompleted } = useRoomStore();
+  const { hostedRoom, createdCode, isCreating, isJoining, createRoom, joinRoom, markHostedRoomCompleted, clearHostedRoom } = useRoomStore();
   const hydrated = useHydrated();
   const [defaultCurrency, setDefaultCurrency] = useState(settings?.currency || 'INR');
   const [maxTeamBudget, setMaxTeamBudget] = useState(settings?.maxTeamBudget || 20000000);
@@ -33,6 +33,19 @@ export default function SettingsPage() {
   const [joinNameInput, setJoinNameInput] = useState('');
   const [joinTeamNameInput, setJoinTeamNameInput] = useState('');
   const [hasCopiedCode, setHasCopiedCode] = useState(false);
+
+  const currentAuctionMode = settings?.auctionMode || (createdCode && hostedRoom?.status === 'LIVE' ? 'ROOM' : 'VANILLA');
+
+  const handleSelectMode = (mode: 'VANILLA' | 'ROOM') => {
+    if (mode === 'VANILLA') {
+      updateSettings({ currency: defaultCurrency, maxTeamBudget, auctionMode: 'VANILLA' });
+      clearHostedRoom();
+      toast.success('Switched to Vanilla Mode (Offline). Manual team management enabled.');
+    } else {
+      updateSettings({ currency: defaultCurrency, maxTeamBudget, auctionMode: 'ROOM' });
+      toast.success('Switched to Room Mode. Contestants will enter using the room code.');
+    }
+  };
 
   // Sync settings when loaded
   useEffect(() => {
@@ -46,7 +59,7 @@ export default function SettingsPage() {
 
   const handleCurrencyChange = (newCurr: Currency) => {
     setDefaultCurrency(newCurr);
-    updateSettings({ currency: newCurr, maxTeamBudget });
+    updateSettings({ currency: newCurr, maxTeamBudget, auctionMode: currentAuctionMode });
     const locale = CURRENCY_LOCALES[newCurr as keyof typeof CURRENCY_LOCALES] || 'en-US';
     setBudgetInput(maxTeamBudget.toLocaleString(locale));
     toast.success(`Default currency updated to ${newCurr}`);
@@ -60,7 +73,7 @@ export default function SettingsPage() {
       return;
     }
     setMaxTeamBudget(num);
-    updateSettings({ currency: defaultCurrency, maxTeamBudget: num });
+    updateSettings({ currency: defaultCurrency, maxTeamBudget: num, auctionMode: currentAuctionMode });
     const locale = CURRENCY_LOCALES[defaultCurrency as keyof typeof CURRENCY_LOCALES] || 'en-US';
     setBudgetInput(num.toLocaleString(locale));
     toast.success(`Starter max budget set to ${formatCurrency(num, defaultCurrency)}`);
@@ -73,6 +86,7 @@ export default function SettingsPage() {
   const displayCategoriesCount = hydrated ? new Set(auctionPlayers.map(p => p.player.category)).size : 0;
 
   const handleCreateRoom = async () => {
+    updateSettings({ auctionMode: 'ROOM' });
     // Reset previous room teams & draw state for a clean slate
     useAuctionStore.setState({
       teams: [],
@@ -238,6 +252,114 @@ export default function SettingsPage() {
             lines={["SETTINGS"]}
             description="Configure your auction settings and rules"
           />
+
+        {/* Tournament Mode Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Card className="glass border-border-subtle overflow-hidden">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-[var(--gold)]" aria-hidden="true" />
+                </div>
+                <div>
+                  <CardTitle className="font-heading text-lg font-semibold">Tournament Mode</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Select how you want to run this auction tournament
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Option 1: Vanilla Mode */}
+                <div
+                  onClick={() => handleSelectMode('VANILLA')}
+                  className={cn(
+                    'p-4 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between',
+                    currentAuctionMode === 'VANILLA'
+                      ? 'bg-[var(--gold)]/10 border-[var(--gold)] shadow-[0_0_20px_rgba(234,179,8,0.15)] ring-1 ring-[var(--gold)]/50'
+                      : 'glass bg-card/40 border-border-subtle hover:border-white/20 hover:bg-card/60'
+                  )}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold',
+                            currentAuctionMode === 'VANILLA'
+                              ? 'bg-[var(--gold)] text-black'
+                              : 'bg-white/10 text-muted-foreground'
+                          )}
+                        >
+                          ⚡
+                        </div>
+                        <span className="font-heading font-bold text-sm text-foreground">Vanilla Mode</span>
+                      </div>
+                      {currentAuctionMode === 'VANILLA' && (
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--gold)] text-black shadow-sm">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Single-device offline mode. Add, edit, and manage all competing teams manually directly in Settings.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 pt-2.5 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-[var(--gold)]">
+                    <span>Manual Team Addition Enabled</span>
+                  </div>
+                </div>
+
+                {/* Option 2: Room Mode */}
+                <div
+                  onClick={() => handleSelectMode('ROOM')}
+                  className={cn(
+                    'p-4 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between',
+                    currentAuctionMode === 'ROOM'
+                      ? 'bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/50'
+                      : 'glass bg-card/40 border-border-subtle hover:border-white/20 hover:bg-card/60'
+                  )}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold',
+                            currentAuctionMode === 'ROOM'
+                              ? 'bg-emerald-500 text-black'
+                              : 'bg-white/10 text-muted-foreground'
+                          )}
+                        >
+                          <Radio className="w-4 h-4 text-black" />
+                        </div>
+                        <span className="font-heading font-bold text-sm text-foreground">Room Mode</span>
+                      </div>
+                      {currentAuctionMode === 'ROOM' && (
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500 text-black shadow-sm">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Multi-device live broadcast. Generate room codes for contestants to join from their phones.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 pt-2.5 border-t border-white/5 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
+                    <span>Teams Join via Room Code Only</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Room Mode Section */}
         <motion.div
@@ -585,69 +707,148 @@ export default function SettingsPage() {
         >
           <Card className="glass">
             <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-[var(--emerald)]/10 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-[var(--emerald)]" aria-hidden="true" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'h-10 w-10 rounded-xl flex items-center justify-center',
+                      currentAuctionMode === 'VANILLA'
+                        ? 'bg-[var(--gold)]/10 text-[var(--gold)]'
+                        : 'bg-emerald-500/10 text-emerald-400'
+                    )}
+                  >
+                    <Users className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <CardTitle className="font-heading text-lg font-semibold">Teams ({teams.length})</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {currentAuctionMode === 'VANILLA'
+                        ? 'Vanilla Mode — Add and manage your tournament clubs manually'
+                        : 'Room Mode — Teams enter dynamically when contestants join via Room Code'}
+                    </p>
+                  </div>
                 </div>
-                <CardTitle className="font-heading text-lg font-semibold">Teams</CardTitle>
+
+                <span
+                  className={cn(
+                    'text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full self-start sm:self-auto shadow-sm',
+                    currentAuctionMode === 'VANILLA'
+                      ? 'bg-[var(--gold)]/15 border border-[var(--gold)]/30 text-[var(--gold)]'
+                      : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                  )}
+                >
+                  {currentAuctionMode === 'VANILLA' ? 'Vanilla Mode' : 'Room Mode'}
+                </span>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-0">
-              {teams.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground mb-4">No teams created yet</p>
-                  <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-                    <Input
-                      value={newTeamName}
-                      onChange={(e) => setNewTeamName(e.target.value)}
-                      placeholder="Team Name (e.g., Mumbai Indians)"
-                      className="bg-[var(--pitch-dark)] border-border-subtle"
-                    />
-                    <Button onClick={handleAddTeam} className="gap-2">
-                      <UserPlus className="h-4 w-4" aria-hidden="true" />
-                      Add Team
+              {currentAuctionMode === 'ROOM' ? (
+                /* Room Mode Teams View */
+                teams.length === 0 ? (
+                  <div className="text-center py-8 px-4">
+                    <p className="text-sm font-medium text-foreground mb-1">Waiting for contestants to connect</p>
+                    <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto leading-relaxed">
+                      When contestants join room {createdCode ? `"${createdCode}"` : ''} on their devices, their clubs will automatically appear here and in the Points Table.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSelectMode('VANILLA')}
+                      className="text-xs h-8 px-3 rounded-lg border-white/20 hover:bg-white/10 text-muted-foreground hover:text-foreground gap-1.5"
+                    >
+                      <span>Switch to Vanilla Mode to Add Teams Manually</span>
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {teams.map(team => (
-                    <div key={team.id} className="flex items-center justify-between p-3 glass rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium tabular-nums w-6 text-right text-muted-foreground">
-                          {teams.indexOf(team) + 1}
+                ) : (
+                  <div className="space-y-2">
+                    {teams.map((team, idx) => (
+                      <div key={team.id} className="flex items-center justify-between p-3 glass rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium tabular-nums w-6 text-right text-muted-foreground">
+                            {idx + 1}
+                          </span>
+                          <div>
+                            <p className="font-medium text-foreground">{team.name}</p>
+                            <p className="text-[11px] text-muted-foreground">Manager: {team.owner || `Manager ${team.id}`}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                          Connected
                         </span>
-                        <p className="font-medium text-foreground">{team.name}</p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          if (confirm(`Remove ${team.name}? This will unassign all their players.`)) {
-                            removeTeam(team.id);
-                            toast.success('Team removed');
-                          }
+                    ))}
+                    <div className="pt-2 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        Teams are managed by connected contestants in Room Mode.
+                      </p>
+                    </div>
+                  </div>
+                )
+              ) : (
+                /* Vanilla Mode Teams View (Manual Creation) */
+                teams.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-muted-foreground mb-4">No teams created yet</p>
+                    <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+                      <Input
+                        value={newTeamName}
+                        onChange={(e) => setNewTeamName(e.target.value)}
+                        placeholder="Team Name (e.g., Real Madrid)"
+                        className="bg-[var(--pitch-dark)] border-border-subtle"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddTeam();
                         }}
-                        className="text-muted-foreground hover:text-destructive"
-                        aria-label={`Remove ${team.name}`}
-                      >
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      />
+                      <Button onClick={handleAddTeam} className="gap-2 shrink-0 bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground font-bold">
+                        <UserPlus className="h-4 w-4" aria-hidden="true" />
+                        Add Team
                       </Button>
                     </div>
-                  ))}
-                  <div className="flex flex-col sm:flex-row gap-2 max-w-md mt-4">
-                    <Input
-                      value={newTeamName}
-                      onChange={(e) => setNewTeamName(e.target.value)}
-                      placeholder="Team Name"
-                      className="bg-[var(--pitch-dark)] border-border-subtle"
-                    />
-                    <Button onClick={handleAddTeam} className="gap-2">
-                      <UserPlus className="h-4 w-4" aria-hidden="true" />
-                      Add Team
-                    </Button>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-2">
+                    {teams.map((team, idx) => (
+                      <div key={team.id} className="flex items-center justify-between p-3 glass rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium tabular-nums w-6 text-right text-muted-foreground">
+                            {idx + 1}
+                          </span>
+                          <p className="font-medium text-foreground">{team.name}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (confirm(`Remove ${team.name}? This will unassign all their players.`)) {
+                              removeTeam(team.id);
+                              toast.success('Team removed');
+                            }
+                          }}
+                          className="text-muted-foreground hover:text-destructive"
+                          aria-label={`Remove ${team.name}`}
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex flex-col sm:flex-row gap-2 max-w-md mt-4">
+                      <Input
+                        value={newTeamName}
+                        onChange={(e) => setNewTeamName(e.target.value)}
+                        placeholder="Team Name"
+                        className="bg-[var(--pitch-dark)] border-border-subtle"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddTeam();
+                        }}
+                      />
+                      <Button onClick={handleAddTeam} className="gap-2 shrink-0 bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground font-bold">
+                        <UserPlus className="h-4 w-4" aria-hidden="true" />
+                        Add Team
+                      </Button>
+                    </div>
+                  </div>
+                )
               )}
             </CardContent>
           </Card>

@@ -103,6 +103,7 @@ interface AuctionState {
 const DEFAULT_SETTINGS: AuctionSettings = {
   currency: 'INR',
   maxTeamBudget: 20000000, // ₹2,00,00,000
+  auctionMode: 'VANILLA',
 };
 
 function createAuctionPlayer(

@@ -29,9 +29,10 @@ export function RoomHostPoller() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  // 1. Participant Sync Heartbeat (Pulls contestants into host teams list)
+  // 1. Participant Sync Heartbeat (Pulls contestants into host teams list when in ROOM mode)
   useEffect(() => {
     if (!hydrated) return;
+    if (settings.auctionMode === 'VANILLA') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -46,41 +47,34 @@ export function RoomHostPoller() {
 
         const currentTeams = useAuctionStore.getState().teams;
         const contestantParticipants = participants.filter((p) => p.role === 'CONTESTANT');
-        const updatedTeams: Team[] = [...currentTeams];
-        let hasChanges = false;
-
-        for (const p of contestantParticipants) {
+        
+        // In Room Mode, teams are derived from the connected contestants in the room
+        const roomTeams: Team[] = contestantParticipants.map((p) => {
           const clubId = p.id;
           const isGenericTeam = !p.teamName || p.teamName === `Team ${clubId}` || p.teamName === `Club ${clubId}`;
           const isGenericOwner = !p.name || p.name === `Manager ${clubId}`;
+          const existing = currentTeams.find((t) => t.id === clubId);
 
-          const existingIdx = updatedTeams.findIndex((t) => t.id === clubId);
-          if (existingIdx === -1) {
-            updatedTeams.push({
-              id: clubId,
-              name: isGenericTeam ? `Club ${clubId}` : p.teamName,
-              owner: isGenericOwner ? `Manager ${clubId}` : p.name,
-              createdAt: p.joinedAt || new Date().toISOString(),
-              otherExpenses: [],
-            });
-            hasChanges = true;
-          } else {
-            const existing = updatedTeams[existingIdx];
-            const newName = !isGenericTeam ? p.teamName : existing.name;
-            const newOwner = !isGenericOwner ? p.name : existing.owner;
-            if (existing.name !== newName || existing.owner !== newOwner) {
-              updatedTeams[existingIdx] = {
-                ...existing,
-                name: newName,
-                owner: newOwner,
-              };
-              hasChanges = true;
-            }
-          }
-        }
+          return {
+            id: clubId,
+            name: !isGenericTeam ? p.teamName : (existing?.name || `Club ${clubId}`),
+            owner: !isGenericOwner ? p.name : (existing?.owner || `Manager ${clubId}`),
+            createdAt: existing?.createdAt || p.joinedAt || new Date().toISOString(),
+            customMaxBudget: existing?.customMaxBudget,
+            customBudgetSpent: existing?.customBudgetSpent,
+            otherExpenses: existing?.otherExpenses || [],
+          };
+        });
 
-        if (hasChanges) {
-          useAuctionStore.setState({ teams: updatedTeams });
+        const isDifferent =
+          roomTeams.length !== currentTeams.length ||
+          roomTeams.some((rt, idx) => {
+            const ct = currentTeams[idx];
+            return !ct || ct.id !== rt.id || ct.name !== rt.name || ct.owner !== rt.owner;
+          });
+
+        if (isDifferent) {
+          useAuctionStore.setState({ teams: roomTeams });
         }
       } catch (err) {
         console.warn('Host room participant sync warning:', err);
@@ -96,7 +90,7 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, hostedRoom?.code, createdCode, syncHostedRoomParticipants]);
+  }, [hydrated, hostedRoom?.code, createdCode, settings.auctionMode, syncHostedRoomParticipants]);
 
   // 2. Broadcast Drawn Player (Immediate on change + 1.2s heartbeat)
   useEffect(() => {

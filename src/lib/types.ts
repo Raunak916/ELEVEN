@@ -43,6 +43,7 @@ export interface Team {
 export interface AuctionSettings {
   currency: Currency;
   maxTeamBudget: number;
+  auctionMode?: 'VANILLA' | 'ROOM';
 }
 
 export interface AuctionSnapshot {

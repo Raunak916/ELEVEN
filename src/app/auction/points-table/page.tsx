@@ -85,21 +85,11 @@ export default function PointsTablePage() {
     addTeamExpense,
     removeTeamExpense,
     updateTeamExpense,
-    addTeam,
-    removeTeam,
-    updateTeam,
   } = useAuctionStore();
   const hydrated = useHydrated();
   const hostedRoom = useRoomStore((state) => state.hostedRoom);
   const createdCode = useRoomStore((state) => state.createdCode);
-  const clearHostedRoom = useRoomStore((state) => state.clearHostedRoom);
   const currentRoomCode = hostedRoom?.code || createdCode;
-
-  // Add Team Modal State (Vanilla Mode)
-  const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
-  const [newTeamName, setNewTeamName] = useState('');
-  const [newTeamOwner, setNewTeamOwner] = useState('');
-  const [newTeamCustomBudget, setNewTeamCustomBudget] = useState('');
 
   const pointsData = hydrated ? getPointsTableData() : [];
   const teams = hydrated ? getTeams() : [];
@@ -237,32 +227,6 @@ export default function PointsTablePage() {
     }
 
     setTransferPlayerItem(null);
-  };
-
-  // Create new team in Vanilla Mode
-  const handleCreateTeam = (e: React.FormEvent) => {
-    e.preventDefault();
-    const name = newTeamName.trim();
-    if (!name) {
-      toast.error('Please enter a team name');
-      return;
-    }
-    const owner = newTeamOwner.trim() || `Manager ${name}`;
-    const created = addTeam(name, owner);
-    const budgetNum = parseFloat(newTeamCustomBudget);
-    if (!isNaN(budgetNum) && budgetNum > 0) {
-      updateTeamBudget(created.id, { customMaxBudget: budgetNum });
-    }
-    toast.success(`Club "${name}" added successfully`);
-    setNewTeamName('');
-    setNewTeamOwner('');
-    setNewTeamCustomBudget('');
-    setIsAddTeamModalOpen(false);
-  };
-
-  const handleSwitchToVanilla = () => {
-    clearHostedRoom();
-    toast.info('Switched to Vanilla Mode (Offline). You can now manually create and manage clubs.');
   };
 
   // Open budget edit dialog
@@ -439,71 +403,24 @@ export default function PointsTablePage() {
             <Card className="glass overflow-hidden border-sidebar-border shadow-2xl">
               <CardHeader className="border-b border-border/40 py-5 px-6 sm:px-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <CardTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
                       <Trophy className="w-6 h-6 text-primary" />
                       Tournament Standings
                     </CardTitle>
 
-                    {/* Mode Status Pill & Switcher */}
-                    {currentRoomCode ? (
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-xs sm:text-sm font-black tracking-wider uppercase shadow-sm',
-                            hostedRoom?.status === 'COMPLETED'
-                              ? 'bg-[var(--gold)]/15 border border-[var(--gold)]/30 text-[var(--gold)]'
-                              : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
-                          )}
-                        >
-                          {hostedRoom?.status === 'COMPLETED' ? (
-                            <>
-                              <Trophy className="w-3.5 h-3.5 text-[var(--gold)]" />
-                              <span>ROOM: {currentRoomCode} (COMPLETED)</span>
-                            </>
-                          ) : (
-                            <>
-                              <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
-                              <span>ROOM: {currentRoomCode} (LIVE)</span>
-                            </>
-                          )}
-                        </span>
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleSwitchToVanilla}
-                          className="text-xs h-7 px-2.5 text-muted-foreground hover:text-foreground border border-white/10 hover:border-white/20 rounded-lg transition-all"
-                          title="Switch to Vanilla Mode for manual offline club creation"
-                        >
-                          Switch to Vanilla
-                        </Button>
-                      </div>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--gold)]/15 border border-[var(--gold)]/30 text-[var(--gold)] font-mono text-xs sm:text-sm font-black tracking-wider uppercase shadow-sm">
-                        <Zap className="w-3.5 h-3.5 text-[var(--gold)]" />
-                        <span>VANILLA MODE (OFFLINE)</span>
+                    {/* Room Code Badge: ONLY shown when in ROOM mode and room is actively LIVE */}
+                    {settings.auctionMode === 'ROOM' && currentRoomCode && hostedRoom?.status === 'LIVE' && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-xs sm:text-sm font-black tracking-wider uppercase shadow-sm bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                        <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+                        <span>ROOM: {currentRoomCode} (LIVE)</span>
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    {!currentRoomCode && (
-                      <Button
-                        type="button"
-                        onClick={() => setIsAddTeamModalOpen(true)}
-                        className="bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground font-heading font-bold text-xs sm:text-sm h-9 px-4 rounded-xl shadow-gold gap-1.5"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Add Club Manually</span>
-                      </Button>
-                    )}
-
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                      {pointsData.length} Teams Competing
-                    </span>
-                  </div>
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    {pointsData.length} Teams Competing
+                  </span>
                 </div>
               </CardHeader>
 
@@ -514,34 +431,13 @@ export default function PointsTablePage() {
                       <Users className="h-8 w-8 opacity-70" />
                     </div>
                     <h3 className="font-heading text-2xl font-bold text-foreground mb-2">
-                      {currentRoomCode ? 'Waiting for Contestants' : 'No Clubs Created Yet'}
+                      {settings.auctionMode === 'ROOM' ? 'Waiting for Contestants' : 'No Teams Created Yet'}
                     </h3>
-                    <p className="text-base text-muted-foreground max-w-md mb-6">
-                      {currentRoomCode
-                        ? `Contestants joining room "${currentRoomCode}" will appear here automatically. Or switch to Vanilla Mode to create clubs manually.`
-                        : 'You are in Vanilla Mode. Create clubs manually to start managing rosters, budgets, and tournament standings.'}
+                    <p className="text-base text-muted-foreground max-w-md">
+                      {settings.auctionMode === 'ROOM'
+                        ? `Contestants joining room "${currentRoomCode || ''}" will appear here automatically.`
+                        : 'Configure your clubs in Settings to start tracking live standings and budgets.'}
                     </p>
-
-                    {!currentRoomCode ? (
-                      <Button
-                        type="button"
-                        onClick={() => setIsAddTeamModalOpen(true)}
-                        className="bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground font-heading font-bold text-sm h-11 px-6 rounded-xl shadow-gold gap-2"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add Your First Club
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleSwitchToVanilla}
-                        className="font-heading font-bold text-sm h-11 px-6 rounded-xl gap-2 border-white/20 hover:bg-white/10"
-                      >
-                        <Zap className="w-4 h-4 text-[var(--gold)]" />
-                        Switch to Vanilla Mode
-                      </Button>
-                    )}
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -1828,113 +1724,6 @@ export default function PointsTablePage() {
                           Save Budget
                         </Button>
                       </div>
-                    </div>
-                  </form>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
-
-          {/* Add Team Modal (Vanilla Mode) */}
-          <AnimatePresence>
-            {isAddTeamModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-background/80 backdrop-blur-sm"
-                  onClick={() => setIsAddTeamModalOpen(false)}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  transition={{ duration: 0.2 }}
-                  className="relative w-full max-w-md rounded-2xl bg-card border border-border p-6 shadow-2xl z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-[var(--gold)]/15 border border-[var(--gold)]/30 flex items-center justify-center text-[var(--gold)]">
-                        <Building2 className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-heading font-bold text-lg text-foreground">
-                          Add Club Manually
-                        </h3>
-                        <p className="text-xs text-muted-foreground">Vanilla / Offline Tournament Mode</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsAddTeamModalOpen(false)}
-                      className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleCreateTeam} className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                        Club Name <span className="text-rose-400">*</span>
-                      </Label>
-                      <Input
-                        type="text"
-                        placeholder="e.g. Real Madrid, Arsenal, FC Barcelona"
-                        value={newTeamName}
-                        onChange={(e) => setNewTeamName(e.target.value)}
-                        className="h-11 px-3.5 rounded-xl bg-card border-input text-sm font-medium focus:border-primary"
-                        required
-                        autoFocus
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                        Manager / Owner Name
-                      </Label>
-                      <Input
-                        type="text"
-                        placeholder="e.g. Carlo Ancelotti, Mikel Arteta"
-                        value={newTeamOwner}
-                        onChange={(e) => setNewTeamOwner(e.target.value)}
-                        className="h-11 px-3.5 rounded-xl bg-card border-input text-sm font-medium focus:border-primary"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                        Initial Purse Cap ({settings.currency}) <span className="text-muted-foreground font-normal">(Optional)</span>
-                      </Label>
-                      <Input
-                        type="number"
-                        step="any"
-                        min="0"
-                        placeholder={`Default: ${formatCurrency(settings.maxTeamBudget, settings.currency)}`}
-                        value={newTeamCustomBudget}
-                        onChange={(e) => setNewTeamCustomBudget(e.target.value)}
-                        className="h-11 px-3.5 rounded-xl bg-card border-input text-sm font-mono font-medium focus:border-primary"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/40">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsAddTeamModalOpen(false)}
-                        className="text-xs h-10 px-4 rounded-xl"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="text-xs h-10 px-5 rounded-xl font-heading font-bold bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground shadow-gold"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Create Club
-                      </Button>
                     </div>
                   </form>
                 </motion.div>
