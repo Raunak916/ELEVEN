@@ -37,13 +37,16 @@ export default function SettingsPage() {
 
   const currentAuctionMode = settings?.auctionMode || (createdCode && hostedRoom?.status === 'LIVE' ? 'ROOM' : 'VANILLA');
 
-  const handleSelectMode = (mode: 'VANILLA' | 'ROOM') => {
+  const handleSelectMode = async (mode: 'VANILLA' | 'ROOM') => {
     if (mode === 'VANILLA') {
       updateSettings({ currency: defaultCurrency, maxTeamBudget, auctionMode: 'VANILLA' });
-      clearHostedRoom();
+      await clearHostedRoom();
       toast.success('Switched to Vanilla Mode (Offline). Manual team management enabled.');
     } else {
       updateSettings({ currency: defaultCurrency, maxTeamBudget, auctionMode: 'ROOM' });
+      if (!hostedRoom && !createdCode) {
+        useAuctionStore.setState({ teams: [], drawnPlayer: null, drawPhase: 'idle' });
+      }
       toast.success('Switched to Room Mode. Contestants will enter using the room code.');
     }
   };
@@ -763,33 +766,57 @@ export default function SettingsPage() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {teams.map((team, idx) => (
-                      <div key={team.id} className="flex items-center justify-between p-3 glass rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium tabular-nums w-6 text-right text-muted-foreground">
-                            {idx + 1}
-                          </span>
-                          <div>
-                            <p className="font-medium text-foreground">{team.name}</p>
-                            <p className="text-[11px] text-muted-foreground">Manager: {team.owner || `Manager ${team.id}`}</p>
+                    {teams.map((team, idx) => {
+                      const isArchived = hostedRoom?.status === 'COMPLETED';
+                      const isLiveConnected = hostedRoom?.status === 'LIVE' && Boolean(createdCode);
+
+                      return (
+                        <div key={team.id} className="flex items-center justify-between p-3 glass rounded-xl">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium tabular-nums w-6 text-right text-muted-foreground">
+                              {idx + 1}
+                            </span>
+                            <div>
+                              <p className="font-medium text-foreground">{team.name}</p>
+                              <p className="text-[11px] text-muted-foreground">Manager: {team.owner || `Manager ${team.id}`}</p>
+                            </div>
                           </div>
+                          <span
+                            className={cn(
+                              'text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border',
+                              isArchived
+                                ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                                : isLiveConnected
+                                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                                : 'bg-white/5 border-white/10 text-muted-foreground'
+                            )}
+                          >
+                            {isArchived ? 'Archived' : isLiveConnected ? 'Connected' : 'Offline / Stale'}
+                          </span>
                         </div>
-                        <span
-                          className={cn(
-                            'text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border',
-                            hostedRoom?.status === 'COMPLETED'
-                              ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                              : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
-                          )}
+                      );
+                    })}
+                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <span>
+                        {hostedRoom?.status === 'LIVE' && createdCode
+                          ? `Teams are actively connected to room "${createdCode}".`
+                          : 'Teams from previous session. Create a room above or clear.'}
+                      </span>
+                      {(!hostedRoom || !createdCode) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            useAuctionStore.setState({ teams: [] });
+                            toast.success('Cleared leftover teams');
+                          }}
+                          className="text-xs h-7 px-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         >
-                          {hostedRoom?.status === 'COMPLETED' ? 'Archived' : 'Connected'}
-                        </span>
-                      </div>
-                    ))}
-                    <div className="pt-2 text-center">
-                      <p className="text-xs text-muted-foreground">
-                        Teams are managed by connected contestants in Room Mode.
-                      </p>
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Clear Leftover Teams
+                        </Button>
+                      )}
                     </div>
                   </div>
                 )
@@ -899,8 +926,14 @@ export default function SettingsPage() {
                     </Link>
                     <Button
                       size="sm"
-                      onClick={() => {
-                        clearHostedRoom();
+                      onClick={async () => {
+                        await clearHostedRoom();
+                        useAuctionStore.setState({
+                          teams: [],
+                          auctionPlayers: [],
+                          drawnPlayer: null,
+                          drawPhase: 'idle',
+                        });
                         handleSelectMode('ROOM');
                         toast.success('Ready to host a fresh auction tournament!');
                       }}

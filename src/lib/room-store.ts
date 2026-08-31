@@ -218,7 +218,18 @@ export const useRoomStore = create<RoomState>()(
       },
 
       clearJoinError: () => set({ joinError: null }),
-      clearHostedRoom: () => set({ hostedRoom: null, createdCode: null }),
+      clearHostedRoom: async () => {
+        try {
+          const { useAuctionStore } = await import('./auction-store');
+          useAuctionStore.setState({
+            auctionPlayers: [],
+            teams: [],
+            drawnPlayer: null,
+            drawPhase: 'idle',
+          });
+        } catch {}
+        set({ hostedRoom: null, createdCode: null });
+      },
       markHostedRoomCompleted: () => {
         const hosted = get().hostedRoom;
         if (hosted) {
