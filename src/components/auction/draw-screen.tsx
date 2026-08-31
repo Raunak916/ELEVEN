@@ -29,6 +29,7 @@ import {
   Check,
 } from 'lucide-react';
 import { AssignmentPanel } from './assignment-panel';
+import { PlayerHype } from './player-hype';
 import { useHydrated } from '@/lib/use-hydrated';
 import { toast } from 'sonner';
 import { AnimatedNumber } from '@/components/core/animated-number';
@@ -490,6 +491,19 @@ export function DrawScreen() {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* AI Player Hype (Left Edge) */}
+        {drawPhase === 'complete' && currentDrawnPlayer && (
+          <motion.div
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25, delay: 0.2 }}
+            className="fixed left-6 xl:left-12 top-1/2 -translate-y-1/2 z-40 hidden lg:block w-[320px] xl:w-[360px] h-[480px]"
+          >
+            <PlayerHype playerName={currentDrawnPlayer.player.name} role={currentDrawnPlayer.role} />
+          </motion.div>
+        )}
 
         {/* Floating Right-Edge Docked Tab */}
         {drawPhase === 'complete' && currentDrawnPlayer && (
