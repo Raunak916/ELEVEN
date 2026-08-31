@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { AppLayout } from '@/components/layout/app-layout';
 import { PageHeader } from '@/components/layout/page-header';
@@ -773,8 +774,15 @@ export default function SettingsPage() {
                             <p className="text-[11px] text-muted-foreground">Manager: {team.owner || `Manager ${team.id}`}</p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                          Connected
+                        <span
+                          className={cn(
+                            'text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border',
+                            hostedRoom?.status === 'COMPLETED'
+                              ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                              : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                          )}
+                        >
+                          {hostedRoom?.status === 'COMPLETED' ? 'Archived' : 'Connected'}
                         </span>
                       </div>
                     ))}
@@ -870,80 +878,117 @@ export default function SettingsPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-0">
-              <div className="p-4 glass rounded-xl bg-[var(--gold)]/5 border border-[var(--gold)]/20">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-[var(--gold)] mt-0.5 flex-shrink-0" aria-hidden="true" />
-                  <div>
-                    <p className="font-medium text-foreground">Finalize and Archive</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      This will save the current auction as an immutable snapshot in History,
-                      then reset the auction for a new session. All player assignments, budgets,
-                      and sale prices will be preserved in the historical record.
-                    </p>
+              {hostedRoom?.status === 'COMPLETED' ? (
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-heading font-bold text-foreground">Auction Completed & Archived</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        This tournament was saved to History. All squads, budgets, and transactions are permanently stored.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link href="/auction/history">
+                      <Button variant="outline" size="sm" className="text-xs h-9 border-white/20">
+                        View History
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        clearHostedRoom();
+                        handleSelectMode('ROOM');
+                        toast.success('Ready to host a fresh auction tournament!');
+                      }}
+                      className="text-xs h-9 bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground font-bold"
+                    >
+                      Start New Auction
+                    </Button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="p-4 glass rounded-xl bg-[var(--gold)]/5 border border-[var(--gold)]/20">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-[var(--gold)] mt-0.5 flex-shrink-0" aria-hidden="true" />
+                      <div>
+                        <p className="font-medium text-foreground">Finalize and Archive</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          This will save the current auction as an immutable snapshot in History,
+                          then reset the auction for a new session. All player assignments, budgets,
+                          and sale prices will be preserved in the historical record.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  <strong>{teams.length}</strong> teams, <strong>{auctionPlayers.filter(p => p.soldPrice !== null).length}</strong> players sold
-                </p>
-                <Button
-                  onClick={async () => {
-                    if (teams.length === 0) {
-                      toast.error('No teams created. Add teams first.');
-                      return;
-                    }
-                    if (auctionPlayers.filter(p => p.soldPrice !== null).length === 0) {
-                      if (!confirm('No players have been sold yet. Complete anyway?')) return;
-                    }
-                    if (confirm('Complete this auction and save to history? This action cannot be undone.')) {
-                      const currentRoomCode = hostedRoom?.code || createdCode;
-                      const currentTeams = [...teams];
-                      const currentAuctionPlayers = [...auctionPlayers];
-                      const currentSettings = { ...settings };
-
-                      const assignedPlayers = currentAuctionPlayers.filter(
-                        (p) =>
-                          p.status === 'UNSOLD' ||
-                          p.status === 'DRAWN' ||
-                          Boolean(p.teamId) ||
-                          (p.soldPrice !== null && p.soldPrice !== undefined)
-                      );
-
-                      if (currentRoomCode) {
-                        try {
-                          await fetch('/api/rooms/complete', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              code: currentRoomCode,
-                              teams: currentTeams,
-                              assignedPlayers,
-                              settings: {
-                                currency: currentSettings.currency,
-                                maxTeamBudget: currentSettings.maxTeamBudget,
-                              },
-                            }),
-                          });
-                        } catch (err) {
-                          console.warn('Failed to mark room completed:', err);
+                  <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      <strong>{teams.length}</strong> teams, <strong>{auctionPlayers.filter(p => p.soldPrice !== null).length}</strong> players sold
+                    </p>
+                    <Button
+                      onClick={async () => {
+                        if (teams.length === 0) {
+                          toast.error('No active teams. Add clubs or create a room first.');
+                          return;
                         }
-                      }
+                        const soldCount = auctionPlayers.filter(p => p.soldPrice !== null).length;
+                        if (soldCount === 0) {
+                          if (!confirm('No players have been sold yet in this session. Complete and archive anyway?')) return;
+                        }
+                        if (confirm('Complete this auction and save to history? This action cannot be undone.')) {
+                          const currentRoomCode = hostedRoom?.code || createdCode;
+                          const currentTeams = [...teams];
+                          const currentAuctionPlayers = [...auctionPlayers];
+                          const currentSettings = { ...settings };
 
-                      markHostedRoomCompleted();
-                      const snapshotName = currentRoomCode ? `Auction ${currentRoomCode}` : undefined;
-                      completeAuction(snapshotName, currentRoomCode || undefined);
-                      toast.success('Auction completed and saved to History');
-                    }
-                  }}
-                  disabled={teams.length === 0}
-                  className="bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground shadow-gold gap-2"
-                >
-                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                  Complete Auction
-                </Button>
-              </div>
+                          const assignedPlayers = currentAuctionPlayers.filter(
+                            (p) =>
+                              p.status === 'UNSOLD' ||
+                              p.status === 'DRAWN' ||
+                              Boolean(p.teamId) ||
+                              (p.soldPrice !== null && p.soldPrice !== undefined)
+                          );
+
+                          if (currentRoomCode) {
+                            try {
+                              await fetch('/api/rooms/complete', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  code: currentRoomCode,
+                                  teams: currentTeams,
+                                  assignedPlayers,
+                                  settings: {
+                                    currency: currentSettings.currency,
+                                    maxTeamBudget: currentSettings.maxTeamBudget,
+                                  },
+                                }),
+                              });
+                            } catch (err) {
+                              console.warn('Failed to mark room completed:', err);
+                            }
+                          }
+
+                          markHostedRoomCompleted();
+                          const snapshotName = currentRoomCode ? `Auction ${currentRoomCode}` : undefined;
+                          completeAuction(snapshotName, currentRoomCode || undefined);
+                          toast.success('Auction completed and saved to History!');
+                        }
+                      }}
+                      disabled={teams.length === 0}
+                      className="bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground shadow-gold gap-2"
+                    >
+                      <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                      Complete Auction
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </motion.div>

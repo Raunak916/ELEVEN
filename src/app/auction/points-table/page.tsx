@@ -431,10 +431,16 @@ export default function PointsTablePage() {
                       <Users className="h-8 w-8 opacity-70" />
                     </div>
                     <h3 className="font-heading text-2xl font-bold text-foreground mb-2">
-                      {settings.auctionMode === 'ROOM' ? 'Waiting for Contestants' : 'No Teams Created Yet'}
+                      {hostedRoom?.status === 'COMPLETED'
+                        ? 'Auction Completed & Archived'
+                        : settings.auctionMode === 'ROOM'
+                        ? 'Waiting for Contestants'
+                        : 'No Teams Created Yet'}
                     </h3>
                     <p className="text-base text-muted-foreground max-w-md">
-                      {settings.auctionMode === 'ROOM'
+                      {hostedRoom?.status === 'COMPLETED'
+                        ? 'The previous tournament has been saved to History. Create a new room or configure clubs in Settings to start a new auction.'
+                        : settings.auctionMode === 'ROOM'
                         ? `Contestants joining room "${currentRoomCode || ''}" will appear here automatically.`
                         : 'Configure your clubs in Settings to start tracking live standings and budgets.'}
                     </p>

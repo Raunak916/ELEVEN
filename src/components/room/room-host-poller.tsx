@@ -33,6 +33,7 @@ export function RoomHostPoller() {
   useEffect(() => {
     if (!hydrated) return;
     if (settings.auctionMode === 'VANILLA') return;
+    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -108,6 +109,7 @@ export function RoomHostPoller() {
   // 2. Broadcast Drawn Player (Immediate on change + 800ms heartbeat)
   useEffect(() => {
     if (!hydrated) return;
+    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -143,11 +145,12 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, hostedRoom?.code, createdCode, drawnPlayer, drawPhase]);
+  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, drawnPlayer, drawPhase]);
 
   // 3. Broadcast Roster & Teams (Immediate on change + 900ms heartbeat)
   useEffect(() => {
     if (!hydrated) return;
+    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
@@ -194,11 +197,12 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, hostedRoom?.code, createdCode, teams, auctionPlayers, settings]);
+  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, teams, auctionPlayers, settings]);
 
   // 4. Broadcast Cards State (Every 3s)
   useEffect(() => {
     if (!hydrated) return;
+    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
