@@ -59,6 +59,8 @@ export async function GET(req: Request) {
           rosterState: room.rosterState,
           cardsState: room.cardsState,
           createdAt: room.createdAt,
+          updatedAt: room.updatedAt,
+          version: room.version || new Date(room.updatedAt).getTime() || 0,
           participantsCount: room.participants.length,
           participants: room.participants,
         },

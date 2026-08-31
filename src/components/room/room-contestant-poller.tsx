@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRoomStore } from '@/lib/room-store';
 import { useAuctionStore } from '@/lib/auction-store';
 import { useHydrated } from '@/lib/use-hydrated';
@@ -8,11 +8,13 @@ import { useHydrated } from '@/lib/use-hydrated';
 export function RoomContestantPoller() {
   const activeSession = useRoomStore((state) => state.activeSession);
   const hydrated = useHydrated();
+  const lastAppliedVersionRef = useRef(0);
 
   useEffect(() => {
     if (!hydrated) return;
     if (!activeSession || activeSession.role !== 'CONTESTANT' || !activeSession.roomCode) return;
 
+    lastAppliedVersionRef.current = 0;
     const roomCode = activeSession.roomCode;
     let isMounted = true;
     let timer: NodeJS.Timeout;
@@ -30,6 +32,22 @@ export function RoomContestantPoller() {
         const data = await res.json();
         const room = data.room;
         if (!room || !isMounted) return;
+
+        const serverVersion =
+          typeof room.version === 'number' && room.version > 0
+            ? room.version
+            : room.updatedAt
+            ? new Date(room.updatedAt).getTime()
+            : 0;
+
+        // ATOMIC MONOTONIC VERSION GUARD:
+        // If a lagging serverless container returns a snapshot older than what we already applied,
+        // DROP IT INSTANTLY. Prevents any 5-10 second turbulence or state oscillation!
+        if (serverVersion < lastAppliedVersionRef.current) {
+          return;
+        }
+
+        lastAppliedVersionRef.current = serverVersion;
 
         // 1. Sync live draw player state with Monotonic Progression (never downgrade a confirmed sale to unsold)
         const serverDraw = room.currentDraw;

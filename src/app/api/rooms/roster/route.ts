@@ -4,7 +4,7 @@ import { updateRoomRoster } from '@/lib/room-db';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { code, teams, assignedPlayers, settings } = body;
+    const { code, teams, assignedPlayers, settings, version } = body;
 
     if (!code) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       assignedPlayers: assignedPlayers || [],
     };
 
-    updateRoomRoster(code, rosterState, settings || null);
+    updateRoomRoster(code, rosterState, settings || null, version);
 
     return NextResponse.json({
       success: true,

@@ -4,7 +4,7 @@ import { updateRoomDraw } from '@/lib/room-db';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { code, drawnPlayer, drawPhase } = body;
+    const { code, drawnPlayer, drawPhase, version } = body;
 
     if (!code) {
       return NextResponse.json(
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         }
       : null;
 
-    updateRoomDraw(code, currentDraw);
+    updateRoomDraw(code, currentDraw, version);
 
     return NextResponse.json({
       success: true,

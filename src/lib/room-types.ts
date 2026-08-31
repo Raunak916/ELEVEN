@@ -32,6 +32,7 @@ export interface Room {
   } | null;
   createdAt: string;
   updatedAt: string;
+  version?: number;
   participants: RoomParticipant[];
 }
 

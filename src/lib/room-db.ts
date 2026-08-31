@@ -65,6 +65,10 @@ function initSchema(db: Database.Database) {
     if (!hasCards) {
       db.exec("ALTER TABLE rooms ADD COLUMN cards_state_json TEXT DEFAULT NULL");
     }
+    const hasVersion = tableInfo.some((col) => col.name === 'version');
+    if (!hasVersion) {
+      db.exec("ALTER TABLE rooms ADD COLUMN version INTEGER DEFAULT 0");
+    }
   } catch {
     // Ignore migration if already exists
   }
@@ -112,6 +116,7 @@ interface RoomRow {
   roster_state_json?: string;
   cards_state_json?: string;
   participants_json: string;
+  version?: number;
   created_at: string;
   updated_at: string;
 }
@@ -163,6 +168,13 @@ function mapRowToRoom(row: RoomRow): Room {
     cardsState = null;
   }
 
+  const roomVersion =
+    row.version && row.version > 0
+      ? row.version
+      : row.updated_at
+      ? new Date(row.updated_at).getTime()
+      : Date.now();
+
   const room: Room = {
     id: row.id,
     code: row.code,
@@ -174,6 +186,7 @@ function mapRowToRoom(row: RoomRow): Room {
     cardsState,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    version: roomVersion,
     participants,
   };
 
@@ -466,12 +479,14 @@ export function leaveRoom(roomId: string, participantId: string): boolean {
 
 export function updateRoomDraw(
   code: string,
-  currentDraw: { drawnPlayer: any; drawPhase: string } | null
+  currentDraw: { drawnPlayer: any; drawPhase: string } | null,
+  version?: number
 ): boolean {
   if (!code) return false;
   const room = ensureRoom(code);
 
   const now = new Date().toISOString();
+  const effectiveVersion = version && version > 0 ? version : Date.now();
   const drawJson = currentDraw ? JSON.stringify(currentDraw) : null;
   const nextStatus: RoomStatus = currentDraw?.drawnPlayer ? 'LIVE' : room.status;
 
@@ -479,10 +494,10 @@ export function updateRoomDraw(
     const db = getRoomDB();
     const stmt = db.prepare(`
       UPDATE rooms
-      SET current_draw_json = ?, status = ?, updated_at = ?
+      SET current_draw_json = ?, status = ?, version = ?, updated_at = ?
       WHERE id = ?
     `);
-    stmt.run(drawJson, nextStatus, now, room.id);
+    stmt.run(drawJson, nextStatus, effectiveVersion, now, room.id);
   } catch (err) {
     console.warn('Failed to persist draw update to SQLite:', err);
   }
@@ -491,6 +506,7 @@ export function updateRoomDraw(
     ...room,
     currentDraw,
     status: nextStatus,
+    version: effectiveVersion,
     updatedAt: now,
   };
 
@@ -503,12 +519,14 @@ export function updateRoomDraw(
 export function updateRoomRoster(
   code: string,
   rosterState: { teams: any[]; assignedPlayers: any[] } | null,
-  settings?: { currency: string; maxTeamBudget: number } | null
+  settings?: { currency: string; maxTeamBudget: number } | null,
+  version?: number
 ): boolean {
   if (!code) return false;
   const room = ensureRoom(code);
 
   const now = new Date().toISOString();
+  const effectiveVersion = version && version > 0 ? version : Date.now();
   const rosterJson = rosterState ? JSON.stringify(rosterState) : null;
 
   // Cumulative participant merge: populate this container's participants with all host teams
@@ -537,17 +555,17 @@ export function updateRoomRoster(
       const settingsJson = JSON.stringify(settings);
       const stmt = db.prepare(`
         UPDATE rooms
-        SET roster_state_json = ?, settings_json = ?, participants_json = ?, updated_at = ?
+        SET roster_state_json = ?, settings_json = ?, participants_json = ?, version = ?, updated_at = ?
         WHERE id = ?
       `);
-      stmt.run(rosterJson, settingsJson, participantsJson, now, room.id);
+      stmt.run(rosterJson, settingsJson, participantsJson, effectiveVersion, now, room.id);
     } else {
       const stmt = db.prepare(`
         UPDATE rooms
-        SET roster_state_json = ?, participants_json = ?, updated_at = ?
+        SET roster_state_json = ?, participants_json = ?, version = ?, updated_at = ?
         WHERE id = ?
       `);
-      stmt.run(rosterJson, participantsJson, now, room.id);
+      stmt.run(rosterJson, participantsJson, effectiveVersion, now, room.id);
     }
   } catch (err) {
     console.warn('Failed to persist roster update to SQLite:', err);
@@ -558,6 +576,7 @@ export function updateRoomRoster(
     rosterState,
     participants: updatedParticipants,
     settings: settings || room.settings,
+    version: effectiveVersion,
     updatedAt: now,
   };
 
@@ -567,20 +586,21 @@ export function updateRoomRoster(
   return true;
 }
 
-export function updateRoomStatus(code: string, status: RoomStatus): boolean {
+export function updateRoomStatus(code: string, status: RoomStatus, version?: number): boolean {
   if (!code) return false;
   const room = ensureRoom(code);
 
   const now = new Date().toISOString();
+  const effectiveVersion = version && version > 0 ? version : Date.now();
 
   try {
     const db = getRoomDB();
     const stmt = db.prepare(`
       UPDATE rooms
-      SET status = ?, updated_at = ?
+      SET status = ?, version = ?, updated_at = ?
       WHERE id = ?
     `);
-    stmt.run(status, now, room.id);
+    stmt.run(status, effectiveVersion, now, room.id);
   } catch (err) {
     console.warn('Failed to persist status update to SQLite:', err);
   }
@@ -588,6 +608,7 @@ export function updateRoomStatus(code: string, status: RoomStatus): boolean {
   const updatedRoom: Room = {
     ...room,
     status,
+    version: effectiveVersion,
     updatedAt: now,
   };
 
@@ -599,22 +620,24 @@ export function updateRoomStatus(code: string, status: RoomStatus): boolean {
 
 export function updateRoomCards(
   code: string,
-  cardsState: { powerCards: any[]; sickCards: any[] } | null
+  cardsState: { powerCards: any[]; sickCards: any[] } | null,
+  version?: number
 ): boolean {
   if (!code) return false;
   const room = ensureRoom(code);
 
   const now = new Date().toISOString();
+  const effectiveVersion = version && version > 0 ? version : Date.now();
   const cardsJson = cardsState ? JSON.stringify(cardsState) : null;
 
   try {
     const db = getRoomDB();
     const stmt = db.prepare(`
       UPDATE rooms
-      SET cards_state_json = ?, updated_at = ?
+      SET cards_state_json = ?, version = ?, updated_at = ?
       WHERE id = ?
     `);
-    stmt.run(cardsJson, now, room.id);
+    stmt.run(cardsJson, effectiveVersion, now, room.id);
   } catch (err) {
     console.warn('Failed to persist cards update to SQLite:', err);
   }
@@ -622,6 +645,7 @@ export function updateRoomCards(
   const updatedRoom: Room = {
     ...room,
     cardsState,
+    version: effectiveVersion,
     updatedAt: now,
   };
 

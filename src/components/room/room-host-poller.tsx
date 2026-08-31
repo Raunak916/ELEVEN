@@ -103,12 +103,15 @@ export function RoomHostPoller() {
     };
   }, [hydrated, hostedRoom?.code, createdCode, settings.auctionMode, syncHostedRoomParticipants]);
 
-  // 2. Broadcast Drawn Player (Immediate on change + 1.2s heartbeat)
+  const roomVersionRef = useRef(Date.now());
+
+  // 2. Broadcast Drawn Player (Immediate on change + 800ms heartbeat)
   useEffect(() => {
     if (!hydrated) return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
+    roomVersionRef.current = Date.now();
     let isMounted = true;
     let timer: NodeJS.Timeout;
 
@@ -122,6 +125,7 @@ export function RoomHostPoller() {
             code: roomCode,
             drawnPlayer: drawnPlayerRef.current || null,
             drawPhase: drawPhaseRef.current || 'idle',
+            version: roomVersionRef.current,
           }),
           signal: AbortSignal.timeout(3000),
         });
@@ -147,6 +151,7 @@ export function RoomHostPoller() {
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
 
+    roomVersionRef.current = Date.now();
     let isMounted = true;
     let timer: NodeJS.Timeout;
 
@@ -171,6 +176,7 @@ export function RoomHostPoller() {
               currency: settingsRef.current.currency,
               maxTeamBudget: settingsRef.current.maxTeamBudget,
             },
+            version: roomVersionRef.current,
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -214,6 +220,7 @@ export function RoomHostPoller() {
             code: roomCode,
             powerCards,
             sickCards,
+            version: roomVersionRef.current,
           }),
           signal: AbortSignal.timeout(3000),
         });
