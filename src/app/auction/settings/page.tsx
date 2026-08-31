@@ -1008,10 +1008,16 @@ export default function SettingsPage() {
                             }
                           }
 
-                          markHostedRoomCompleted();
                           const snapshotName = currentRoomCode ? `Auction ${currentRoomCode}` : undefined;
                           completeAuction(snapshotName, currentRoomCode || undefined);
-                          toast.success('Auction completed and saved to History!');
+                          clearHostedRoom();
+                          useAuctionStore.setState({
+                            teams: [],
+                            auctionPlayers: [],
+                            drawnPlayer: null,
+                            drawPhase: 'idle',
+                          });
+                          toast.success('Auction finalized and saved to History! Ready for next tournament.');
                         }
                       }}
                       disabled={teams.length === 0}
