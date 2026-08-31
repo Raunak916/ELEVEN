@@ -499,7 +499,7 @@ export function DrawScreen() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ type: 'spring', stiffness: 200, damping: 25, delay: 0.2 }}
-            className="fixed left-6 xl:left-12 top-1/2 -translate-y-1/2 z-40 hidden lg:block w-[320px] xl:w-[360px] h-[480px]"
+            className="absolute left-6 xl:left-12 top-1/2 -translate-y-1/2 z-40 hidden lg:block w-[320px] xl:w-[360px] h-[480px]"
           >
             <PlayerHype playerName={currentDrawnPlayer.player.name} role={currentDrawnPlayer.role} />
           </motion.div>
