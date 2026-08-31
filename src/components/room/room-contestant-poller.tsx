@@ -31,7 +31,7 @@ export function RoomContestantPoller() {
         const room = data.room;
         if (!room || !isMounted) return;
 
-        // 1. Sync live draw player state with full field comparison
+        // 1. Sync live draw player state with Monotonic Progression (never downgrade a confirmed sale to unsold)
         const serverDraw = room.currentDraw;
         const currentLocalDrawn = useAuctionStore.getState().drawnPlayer;
         const currentLocalPhase = useAuctionStore.getState().drawPhase;
@@ -47,43 +47,77 @@ export function RoomContestantPoller() {
         const localStatus = currentLocalDrawn?.status || null;
         const serverPhase = serverDraw?.drawPhase || 'idle';
 
-        const hasPlayerChanged =
-          serverPlayerId !== localPlayerId ||
-          serverTeamId !== localTeamId ||
-          serverSoldPrice !== localSoldPrice ||
-          serverStatus !== localStatus ||
-          serverPhase !== currentLocalPhase ||
-          Boolean(serverPlayer) !== Boolean(currentLocalDrawn);
+        // Check if server container is lagging on the same player (e.g. server says unsold/pending when local already knows it was sold)
+        const localHasSale = Boolean(localTeamId) || (localSoldPrice !== null && localSoldPrice !== undefined);
+        const serverHasSale = Boolean(serverTeamId) || (serverSoldPrice !== null && serverSoldPrice !== undefined);
+        const isServerLaggingOnSamePlayer = Boolean(serverPlayerId && serverPlayerId === localPlayerId && localHasSale && !serverHasSale);
 
-        if (hasPlayerChanged) {
-          useAuctionStore.setState({
-            drawnPlayer: serverPlayer,
-            drawPhase: serverPhase as any,
-          });
+        if (!isServerLaggingOnSamePlayer) {
+          const hasPlayerChanged =
+            serverPlayerId !== localPlayerId ||
+            serverTeamId !== localTeamId ||
+            serverSoldPrice !== localSoldPrice ||
+            serverStatus !== localStatus ||
+            serverPhase !== currentLocalPhase ||
+            Boolean(serverPlayer) !== Boolean(currentLocalDrawn);
+
+          if (hasPlayerChanged) {
+            useAuctionStore.setState({
+              drawnPlayer: serverPlayer,
+              drawPhase: serverPhase as any,
+            });
+          }
         }
 
-        // 2. Sync room rosterState (all assigned players and team budgets/expenses from host)
+        // 2. Sync room rosterState with Monotonic Progression (never wipe squad on lagging server container)
         if (room.rosterState) {
           const { teams: serverTeams, assignedPlayers: serverAssignedPlayers } = room.rosterState;
-          
-          if (Array.isArray(serverTeams)) {
-            useAuctionStore.setState({ teams: serverTeams });
+          const currentLocalAuctionPlayers = useAuctionStore.getState().auctionPlayers;
+          const currentLocalTeams = useAuctionStore.getState().teams;
+
+          // Guard against lagging container snapshots for assigned players
+          if (Array.isArray(serverAssignedPlayers)) {
+            const localSoldCount = currentLocalAuctionPlayers.filter(
+              (p) => p.status === 'DRAWN' || Boolean(p.teamId) || (p.soldPrice !== null && p.soldPrice !== undefined)
+            ).length;
+
+            const serverSoldCount = serverAssignedPlayers.filter(
+              (p) => p.status === 'DRAWN' || Boolean(p.teamId) || (p.soldPrice !== null && p.soldPrice !== undefined)
+            ).length;
+
+            // Only update if server has at least as many sales/assignments as local (never downgrade)
+            if (serverSoldCount >= localSoldCount) {
+              useAuctionStore.setState({ auctionPlayers: serverAssignedPlayers });
+            }
           }
 
-          if (Array.isArray(serverAssignedPlayers)) {
-            useAuctionStore.setState({ auctionPlayers: serverAssignedPlayers });
+          // Guard against lagging container snapshots for teams
+          if (Array.isArray(serverTeams)) {
+            if (serverTeams.length >= currentLocalTeams.length) {
+              useAuctionStore.setState({ teams: serverTeams });
+            } else {
+              // Merge updated budgets into existing teams without dropping known teams
+              const mergedTeams = currentLocalTeams.map((lt) => {
+                const st = serverTeams.find((t: any) => t.id === lt.id);
+                return st ? { ...lt, ...st } : lt;
+              });
+              useAuctionStore.setState({ teams: mergedTeams });
+            }
           }
         } else if (room.participants && Array.isArray(room.participants)) {
-          // Fallback: sync participants as the isolated team list for this room
-          const contestantParticipants = room.participants.filter((p: any) => p.role === 'CONTESTANT');
-          const roomTeams = contestantParticipants.map((p: any) => ({
-            id: p.id,
-            name: p.teamName || p.name || `Club ${p.id}`,
-            owner: p.name || `Manager ${p.id}`,
-            createdAt: p.joinedAt || new Date().toISOString(),
-            otherExpenses: [],
-          }));
-          useAuctionStore.setState({ teams: roomTeams });
+          // Fallback: sync participants as the isolated team list for this room if local teams is empty
+          const currentLocalTeams = useAuctionStore.getState().teams;
+          if (currentLocalTeams.length === 0) {
+            const contestantParticipants = room.participants.filter((p: any) => p.role === 'CONTESTANT');
+            const roomTeams = contestantParticipants.map((p: any) => ({
+              id: p.id,
+              name: p.teamName || p.name || `Club ${p.id}`,
+              owner: p.name || `Manager ${p.id}`,
+              createdAt: p.joinedAt || new Date().toISOString(),
+              otherExpenses: [],
+            }));
+            useAuctionStore.setState({ teams: roomTeams });
+          }
         }
 
         // 3. Sync room currency / max budget settings

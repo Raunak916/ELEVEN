@@ -129,7 +129,7 @@ export function RoomHostPoller() {
         console.warn('Failed to broadcast draw state:', err);
       } finally {
         if (isMounted) {
-          timer = setTimeout(broadcastDraw, 1200);
+          timer = setTimeout(broadcastDraw, 800);
         }
       }
     };
@@ -141,7 +141,7 @@ export function RoomHostPoller() {
     };
   }, [hydrated, hostedRoom?.code, createdCode, drawnPlayer, drawPhase]);
 
-  // 3. Broadcast Roster & Teams (Immediate on change + 2s heartbeat)
+  // 3. Broadcast Roster & Teams (Immediate on change + 900ms heartbeat)
   useEffect(() => {
     if (!hydrated) return;
     const roomCode = hostedRoom?.code || createdCode;
@@ -178,7 +178,7 @@ export function RoomHostPoller() {
         console.warn('Failed to broadcast roster state:', err);
       } finally {
         if (isMounted) {
-          timer = setTimeout(broadcastRoster, 2000);
+          timer = setTimeout(broadcastRoster, 900);
         }
       }
     };
