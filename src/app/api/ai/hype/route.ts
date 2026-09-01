@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const prompt = `You are a hype man for a football (soccer) auction. 
 The current player being auctioned is ${playerName} (Role: ${role || 'Footballer'}).
