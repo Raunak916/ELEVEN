@@ -418,18 +418,27 @@ export function DrawScreen() {
               )}
 
               {drawPhase === 'cycling' && cyclePlayer && (
-                <motion.div key="cycling" className="flex flex-col items-center">
+                <motion.div 
+                  key="cycling" 
+                  initial={{ scale: 0.9, opacity: 0, filter: 'blur(5px)' }}
+                  animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+                  exit={{ scale: 1.05, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex flex-col items-center relative"
+                >
+                  <div className="absolute inset-0 bg-[var(--gold)] opacity-30 blur-[60px] animate-pulse pointer-events-none" />
                   <div
                     className={cn(
-                      'w-72 sm:w-80 h-[420px] rounded-3xl p-1 bg-gradient-to-b border border-border/40 shadow-2xl relative overflow-hidden',
+                      'w-72 sm:w-80 h-[420px] rounded-3xl p-1 bg-gradient-to-b border border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.15)] relative overflow-hidden',
                       ROLE_DRAW_STYLES[cyclePlayer.role]?.borderGradient || 'from-emerald-400 to-emerald-600'
                     )}
                   >
-                    <div className="w-full h-full rounded-[22px] bg-card/95 backdrop-blur-xl flex flex-col justify-between p-4 relative">
-                      <div className="flex items-center justify-between text-xs font-mono font-bold">
+                    <div className="w-full h-full rounded-[22px] bg-card/95 backdrop-blur-xl flex flex-col justify-between p-4 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-white/5 animate-[pulse_0.1s_infinite] mix-blend-overlay z-10 pointer-events-none" />
+                      <div className="flex justify-between items-center z-20">
                         <span
                           className={cn(
-                            'px-2.5 py-1 rounded-lg border font-mono font-bold uppercase tracking-wider',
+                            'px-2.5 py-1 rounded-lg border font-mono font-bold uppercase tracking-wider opacity-80',
                             ROLE_DRAW_STYLES[cyclePlayer.role]?.pillBg,
                             ROLE_DRAW_STYLES[cyclePlayer.role]?.pillText,
                             ROLE_DRAW_STYLES[cyclePlayer.role]?.pillBorder
@@ -437,27 +446,34 @@ export function DrawScreen() {
                         >
                           {cyclePlayer.role}
                         </span>
-                        <span className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/10 text-foreground">
+                        <span className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/10 text-foreground opacity-80">
                           {cyclePlayer.player.nationalityCode}
                         </span>
                       </div>
-                      <div className="relative w-44 h-44 mx-auto my-auto rounded-2xl overflow-hidden bg-black/40">
-                        <Image src={cyclePlayer.player.photo} alt={cyclePlayer.player.name} fill unoptimized={Boolean(cyclePlayer.player.photo?.startsWith('data:'))} className="object-cover" />
+                      <div className="relative w-44 h-44 mx-auto my-auto rounded-2xl overflow-hidden bg-black/60 mix-blend-luminosity opacity-80">
+                        <Image src={cyclePlayer.player.photo} alt={cyclePlayer.player.name} fill unoptimized={Boolean(cyclePlayer.player.photo?.startsWith('data:'))} className="object-cover grayscale blur-[1px]" />
                       </div>
-                      <p className="text-center font-black text-lg">{cyclePlayer.player.name}</p>
+                      <p className="text-center font-black text-2xl tracking-widest text-white/90 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] z-20 pb-4 animate-[pulse_0.2s_infinite]">{cyclePlayer.player.name}</p>
                     </div>
                   </div>
                 </motion.div>
               )}
 
               {drawPhase === 'revealing' && cyclePlayer && (
-                <motion.div key="revealing" className="flex flex-col items-center">
+                <motion.div 
+                  key="revealing" 
+                  initial={{ scale: 1 }}
+                  animate={{ scale: 1.15, filter: 'brightness(2)', opacity: 0 }}
+                  transition={{ duration: 0.6, ease: "easeIn" }}
+                  className="flex flex-col items-center"
+                >
                   <div
                     className={cn(
-                      'w-72 sm:w-80 h-[420px] rounded-3xl p-1 bg-gradient-to-b border border-border/40 shadow-2xl relative overflow-hidden',
+                      'w-72 sm:w-80 h-[420px] rounded-3xl p-1 bg-gradient-to-b border border-white/50 shadow-[0_0_120px_rgba(255,255,255,0.8)] relative overflow-hidden',
                       ROLE_DRAW_STYLES[cyclePlayer.role]?.borderGradient || 'from-emerald-400 to-emerald-600'
                     )}
                   >
+                    <div className="absolute inset-0 bg-white animate-pulse mix-blend-overlay z-50" />
                     <div className="w-full h-full rounded-[22px] bg-card/95 backdrop-blur-xl flex flex-col justify-between p-4 relative">
                       <div className="relative w-44 h-44 mx-auto my-auto rounded-2xl overflow-hidden bg-black/40">
                         <Image src={cyclePlayer.player.photo} alt={cyclePlayer.player.name} fill unoptimized={Boolean(cyclePlayer.player.photo?.startsWith('data:'))} className="object-cover" />
@@ -650,22 +666,36 @@ function TasteSkillRevealCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.7, y: 30, rotateX: -12, filter: 'blur(10px)' }}
-      animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0, filter: 'blur(0px)' }}
-      transition={{ duration: 0.65, ease: EASE_OUT_EXPO }}
+      initial={{ opacity: 0, scale: 0.1, y: 150, z: -200, rotateX: 60, filter: 'blur(20px)', brightness: 2 }}
+      animate={{ opacity: 1, scale: 1, y: 0, z: 0, rotateX: 0, filter: 'blur(0px)', brightness: 1 }}
+      transition={{ 
+        type: 'spring', 
+        damping: 14, 
+        stiffness: 120, 
+        mass: 0.8,
+        restDelta: 0.001 
+      }}
       className="flex flex-col items-center"
-      style={{ perspective: 1000 }}
+      style={{ perspective: 1200 }}
     >
-      <div className="relative cursor-pointer select-none" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+      <div className="relative cursor-pointer select-none group" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+        {/* Massive behind-the-card entrance glow */}
+        <motion.div 
+          initial={{ opacity: 1, scale: 0 }}
+          animate={{ opacity: 0, scale: 3 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="absolute inset-0 bg-white rounded-full blur-[100px] pointer-events-none z-[-1]"
+        />
+
         <motion.div
-          className="absolute -inset-4 rounded-[28px] pointer-events-none opacity-75 blur-xl"
-          style={{ background: isAssigned ? 'rgba(16, 185, 129, 0.4)' : roleStyle.glowColor }}
+          className="absolute -inset-6 rounded-[32px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-[40px] z-[-1]"
+          style={{ background: isAssigned ? 'rgba(16, 185, 129, 0.5)' : roleStyle.glowColor }}
         />
         <motion.div
           style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
           className={cn(
-            'w-[280px] sm:w-[320px] rounded-[24px] p-[2px] bg-gradient-to-b shadow-2xl relative transition-all duration-300',
-            isAssigned ? 'from-emerald-400/90 via-emerald-600/70 to-emerald-900/90 shadow-[0_0_40px_rgba(16,185,129,0.35)]' : roleStyle.borderGradient,
+            'w-[280px] sm:w-[320px] rounded-[24px] p-[2px] bg-gradient-to-b shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] relative transition-all duration-300',
+            isAssigned ? 'from-emerald-400/90 via-emerald-600/70 to-emerald-900/90 shadow-[0_0_50px_rgba(16,185,129,0.4)]' : roleStyle.borderGradient,
             isAssigned ? '' : roleStyle.accentGlow
           )}
         >
