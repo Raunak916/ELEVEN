@@ -501,7 +501,7 @@ export function DrawScreen() {
             transition={{ type: 'spring', stiffness: 200, damping: 25, delay: 0.2 }}
             className="fixed left-[13rem] xl:left-[15rem] top-1/2 -translate-y-1/2 z-40 hidden lg:block w-[300px] xl:w-[360px] h-[480px]"
           >
-            <PlayerHype playerId={currentDrawnPlayer.id} playerName={currentDrawnPlayer.player.name} role={currentDrawnPlayer.role} />
+            <PlayerHype playerId={currentDrawnPlayer.playerId} playerName={currentDrawnPlayer.player.name} role={currentDrawnPlayer.role} />
           </motion.div>
         )}
 
