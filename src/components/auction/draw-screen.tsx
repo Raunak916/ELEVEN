@@ -666,8 +666,8 @@ function TasteSkillRevealCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.1, y: 150, z: -200, rotateX: 60, filter: 'blur(20px)', brightness: 2 }}
-      animate={{ opacity: 1, scale: 1, y: 0, z: 0, rotateX: 0, filter: 'blur(0px)', brightness: 1 }}
+      initial={{ opacity: 0, scale: 0.1, y: 150, z: -200, rotateX: 60, filter: 'blur(20px) brightness(2)' }}
+      animate={{ opacity: 1, scale: 1, y: 0, z: 0, rotateX: 0, filter: 'blur(0px) brightness(1)' }}
       transition={{ 
         type: 'spring', 
         damping: 14, 

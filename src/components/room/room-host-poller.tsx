@@ -1,12 +1,16 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { useRoomStore } from '@/lib/room-store';
 import { useAuctionStore } from '@/lib/auction-store';
 import { useHydrated } from '@/lib/use-hydrated';
 import { Team } from '@/lib/types';
 
 export function RoomHostPoller() {
+  const pathname = usePathname();
+  const isAuctionRoute = pathname?.startsWith('/auction');
+
   const hostedRoom = useRoomStore((state) => state.hostedRoom);
   const createdCode = useRoomStore((state) => state.createdCode);
   const syncHostedRoomParticipants = useRoomStore((state) => state.syncHostedRoomParticipants);
@@ -29,9 +33,9 @@ export function RoomHostPoller() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  // 1. Participant Sync Heartbeat (Pulls contestants into host teams list when in ROOM mode)
+  // 1. Participant Sync Heartbeat
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isAuctionRoute) return;
     if (settings.auctionMode === 'VANILLA') return;
     if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
@@ -49,7 +53,7 @@ export function RoomHostPoller() {
         const currentTeams = useAuctionStore.getState().teams;
         const contestantParticipants = participants.filter((p) => p.role === 'CONTESTANT');
         
-        // Additive Cumulative Merging: Never remove an already connected contestant across serverless polls
+        // Additive Cumulative Merging
         const updatedTeams: Team[] = [...currentTeams];
         let hasChanges = false;
 
@@ -60,7 +64,6 @@ export function RoomHostPoller() {
 
           const existingIdx = updatedTeams.findIndex((t) => t.id === clubId);
           if (existingIdx === -1) {
-            // New contestant joined -> append to tournament teams list!
             updatedTeams.push({
               id: clubId,
               name: !isGenericTeam ? p.teamName : `Club ${clubId}`,
@@ -70,7 +73,6 @@ export function RoomHostPoller() {
             });
             hasChanges = true;
           } else {
-            // Existing contestant -> update names if customized
             const existing = updatedTeams[existingIdx];
             const newName = !isGenericTeam ? p.teamName : existing.name;
             const newOwner = !isGenericOwner ? p.name : existing.owner;
@@ -92,7 +94,7 @@ export function RoomHostPoller() {
         console.warn('Host room participant sync warning:', err);
       } finally {
         if (isMounted) {
-          timer = setTimeout(syncParticipants, 600);
+          timer = setTimeout(syncParticipants, 5000);
         }
       }
     };
@@ -102,13 +104,13 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, hostedRoom?.code, createdCode, settings.auctionMode, syncHostedRoomParticipants]);
+  }, [hydrated, isAuctionRoute, hostedRoom?.code, createdCode, settings.auctionMode, syncHostedRoomParticipants]);
 
   const roomVersionRef = useRef(Date.now());
 
-  // 2. Broadcast Drawn Player (Immediate on change + 800ms heartbeat)
+  // 2. Broadcast Drawn Player
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isAuctionRoute) return;
     if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
@@ -135,7 +137,7 @@ export function RoomHostPoller() {
         console.warn('Failed to broadcast draw state:', err);
       } finally {
         if (isMounted) {
-          timer = setTimeout(broadcastDraw, 800);
+          timer = setTimeout(broadcastDraw, 10000);
         }
       }
     };
@@ -145,11 +147,11 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, drawnPlayer, drawPhase]);
+  }, [hydrated, isAuctionRoute, hostedRoom?.code, hostedRoom?.status, createdCode, drawnPlayer, drawPhase]);
 
-  // 3. Broadcast Roster & Teams (Immediate on change + 900ms heartbeat)
+  // 3. Broadcast Roster & Teams
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isAuctionRoute) return;
     if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
@@ -187,7 +189,7 @@ export function RoomHostPoller() {
         console.warn('Failed to broadcast roster state:', err);
       } finally {
         if (isMounted) {
-          timer = setTimeout(broadcastRoster, 900);
+          timer = setTimeout(broadcastRoster, 10000);
         }
       }
     };
@@ -197,11 +199,11 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, hostedRoom?.code, hostedRoom?.status, createdCode, teams, auctionPlayers, settings]);
+  }, [hydrated, isAuctionRoute, hostedRoom?.code, hostedRoom?.status, createdCode, teams, auctionPlayers, settings]);
 
-  // 4. Broadcast Cards State (Every 3s)
+  // 4. Broadcast Cards State
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isAuctionRoute) return;
     if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
     const roomCode = hostedRoom?.code || createdCode;
     if (!roomCode) return;
@@ -230,7 +232,7 @@ export function RoomHostPoller() {
         });
       } catch {} finally {
         if (isMounted) {
-          timer = setTimeout(broadcastCards, 3000);
+          timer = setTimeout(broadcastCards, 15000);
         }
       }
     };
@@ -240,7 +242,7 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, hostedRoom?.code, createdCode]);
+  }, [hydrated, isAuctionRoute, hostedRoom?.code, createdCode]);
 
   return null;
 }

@@ -266,7 +266,7 @@ export async function getRoomByCode(code: string): Promise<Room | null> {
     const cleanCode = code.trim().toUpperCase();
 
     try {
-    const row = (await turso.execute({ sql: '', args: [] })).rows[0] as any;
+    const row = (await turso.execute({ sql: 'SELECT * FROM rooms WHERE code = ?', args: [cleanCode] })).rows[0] as any;
 
     if (row) {
       return mapRowToRoom(row);
@@ -287,7 +287,7 @@ export async function getRoomById(id: string): Promise<Room | null> {
     if (!id) return null;
 
     try {
-    const row = (await turso.execute({ sql: '', args: [] })).rows[0] as any;
+    const row = (await turso.execute({ sql: 'SELECT * FROM rooms WHERE id = ?', args: [id] })).rows[0] as any;
 
     if (row) {
       return mapRowToRoom(row);

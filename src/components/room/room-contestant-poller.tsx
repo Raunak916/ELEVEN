@@ -1,17 +1,21 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { useRoomStore } from '@/lib/room-store';
 import { useAuctionStore } from '@/lib/auction-store';
 import { useHydrated } from '@/lib/use-hydrated';
 
 export function RoomContestantPoller() {
+  const pathname = usePathname();
+  const isAuctionRoute = pathname?.startsWith('/auction');
+
   const activeSession = useRoomStore((state) => state.activeSession);
   const hydrated = useHydrated();
   const lastAppliedVersionRef = useRef(0);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isAuctionRoute) return;
     if (!activeSession || activeSession.role !== 'CONTESTANT' || !activeSession.roomCode) return;
 
     lastAppliedVersionRef.current = 0;
@@ -213,7 +217,7 @@ export function RoomContestantPoller() {
         console.warn('Contestant room poll warning:', err);
       } finally {
         if (isMounted) {
-          timer = setTimeout(pollRoomState, 450);
+          timer = setTimeout(pollRoomState, 2000);
         }
       }
     };
