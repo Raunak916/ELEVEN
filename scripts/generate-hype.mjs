@@ -23,7 +23,7 @@ async function generateHypeForTopPlayers() {
 
   console.log("Fetching top 500 players by highest market value...");
   const { rows: players } = await turso.execute(`
-    SELECT name, role FROM players 
+    SELECT id, name, role FROM players 
     ORDER BY highest_market_value_eur DESC NULLS LAST
     LIMIT 500
   `);
@@ -32,13 +32,14 @@ async function generateHypeForTopPlayers() {
 
   let count = 0;
   for (const player of players) {
+    const playerId = player.id;
     const playerName = player.name;
     const role = player.role;
 
     // Check if already in cache
     const { rows: existing } = await turso.execute({
-      sql: 'SELECT 1 FROM player_hype_cache WHERE player_name = ?',
-      args: [playerName],
+      sql: 'SELECT 1 FROM player_hype_cache WHERE player_id = ?',
+      args: [playerId],
     });
 
     if (existing.length > 0) {
@@ -73,14 +74,14 @@ Ballon d'Or Runner-up and Premier League Golden Boot`;
       ];
 
       await turso.execute({
-        sql: 'INSERT OR IGNORE INTO player_hype_cache (player_name, hype_json, created_at) VALUES (?, ?, ?)',
-        args: [playerName, JSON.stringify(finalHype), new Date().toISOString()],
+        sql: 'INSERT OR IGNORE INTO player_hype_cache (player_id, hype_json, created_at) VALUES (?, ?, ?)',
+        args: [playerId, JSON.stringify(finalHype), new Date().toISOString()],
       });
 
       count++;
       
-      // Delay to avoid aggressive rate-limiting
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Delay to avoid aggressive rate-limiting (4 seconds = 15 RPM for free tier)
+      await new Promise(resolve => setTimeout(resolve, 4000));
     } catch (err) {
       console.error(`❌ Failed to generate hype for ${playerName}:`, err.message);
     }

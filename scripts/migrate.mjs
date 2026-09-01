@@ -74,9 +74,10 @@ async function migrate() {
   // 3. Player AI Hype Cache Schema
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS player_hype_cache (
-      player_name TEXT PRIMARY KEY,
+      player_id TEXT PRIMARY KEY,
       hype_json TEXT NOT NULL,
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
     );
   `);
 

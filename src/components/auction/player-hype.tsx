@@ -4,11 +4,12 @@ import { Sparkles, Trophy, Award, TrendingUp, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface PlayerHypeProps {
+  playerId: string | null;
   playerName: string | null;
   role: string | null;
 }
 
-export function PlayerHype({ playerName, role }: PlayerHypeProps) {
+export function PlayerHype({ playerId, playerName, role }: PlayerHypeProps) {
   const [hypePoints, setHypePoints] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +27,7 @@ export function PlayerHype({ playerName, role }: PlayerHypeProps) {
         const res = await fetch('/api/ai/hype', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ playerName, role }),
+          body: JSON.stringify({ playerId, playerName, role }),
         });
         
         if (!isMounted) return;

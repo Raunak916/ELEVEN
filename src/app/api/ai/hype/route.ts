@@ -7,11 +7,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: Request) {
   try {
-    const { playerName, role } = await req.json();
+    const { playerId, playerName, role } = await req.json();
 
-    if (!playerName) {
+    if (!playerId || !playerName) {
       return NextResponse.json(
-        { success: false, error: 'Player name is required' },
+        { success: false, error: 'Player ID and name are required' },
         { status: 400 }
       );
     }
@@ -19,8 +19,8 @@ export async function POST(req: Request) {
     // 1. Check the database cache first
     try {
       const result = await turso.execute({
-        sql: 'SELECT hype_json FROM player_hype_cache WHERE player_name = ?',
-        args: [playerName],
+        sql: 'SELECT hype_json FROM player_hype_cache WHERE player_id = ?',
+        args: [playerId],
       });
 
       if (result.rows.length > 0) {
@@ -74,8 +74,8 @@ Ballon d'Or Runner-up and Premier League Golden Boot`;
 
     // Optional: Save generated hype to cache asynchronously so it's faster next time
     turso.execute({
-      sql: 'INSERT OR IGNORE INTO player_hype_cache (player_name, hype_json, created_at) VALUES (?, ?, ?)',
-      args: [playerName, JSON.stringify(finalHype), new Date().toISOString()],
+      sql: 'INSERT OR IGNORE INTO player_hype_cache (player_id, hype_json, created_at) VALUES (?, ?, ?)',
+      args: [playerId, JSON.stringify(finalHype), new Date().toISOString()],
     }).catch(err => console.warn('Failed to cache hype:', err));
 
     return NextResponse.json({
