@@ -676,6 +676,8 @@ export const useAuctionStore = create<AuctionState>()(
         teams: state.teams,
         settings: state.settings,
         history: state.history,
+        drawnPlayer: state.drawnPlayer,
+        drawPhase: state.drawPhase,
       }),
     }
   )
