@@ -1,9 +1,5 @@
-import Database from 'better-sqlite3';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { Player, PhotoSource, PlayerSource } from './player-db-types';
 import { PlayerPosition, PlayerRole, PlayerCategory } from './types';
-import { PLAYERS } from './players-data';
 
 // Re-export Player for compatibility
 export type { Player };
@@ -17,149 +13,6 @@ export function stripAccents(str: string): string {
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-}
-
-function findDatabaseFile(): string | null {
-  const candidates = [
-    join(process.cwd(), 'data', 'players.db'),
-    join(process.cwd(), '..', 'data', 'players.db'),
-    join(__dirname, 'data', 'players.db'),
-    join(__dirname, '..', 'data', 'players.db'),
-    join(__dirname, '..', '..', 'data', 'players.db'),
-    join(__dirname, '..', '..', '..', 'data', 'players.db'),
-    join('/var/task', 'data', 'players.db'),
-    join('/var/task', 'players.db'),
-  ];
-
-  for (const p of candidates) {
-    try {
-      if (existsSync(p)) {
-        return p;
-      }
-    } catch {
-      // Continue
-    }
-  }
-  return null;
-}
-
-let dbInstance: Database.Database | null = null;
-
-export function getPlayerDB(): Database.Database {
-  if (dbInstance) return dbInstance;
-
-  // 1. Try opening existing DB in readonly mode (Vercel Serverless safe)
-  const dbPath = findDatabaseFile();
-  if (dbPath) {
-    try {
-      const db = new Database(dbPath, { readonly: true, fileMustExist: true });
-      try {
-        db.function('unaccent', (str: any) => stripAccents(str || ''));
-      } catch {
-        // Function registration optional
-      }
-      dbInstance = db;
-      return db;
-    } catch (roErr) {
-      console.warn(`Readonly DB connection to ${dbPath} failed, creating in-memory fallback:`, roErr);
-    }
-  }
-
-  // 2. In-Memory fallback database for Serverless / Cloud environments
-  try {
-    const db = new Database(':memory:');
-    try {
-      db.function('unaccent', (str: any) => stripAccents(str || ''));
-    } catch {
-      // Optional
-    }
-
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS players (
-        id TEXT PRIMARY KEY,
-        external_ids TEXT NOT NULL,
-        name TEXT NOT NULL,
-        first_name TEXT NOT NULL,
-        last_name TEXT NOT NULL,
-        nationality TEXT NOT NULL,
-        nationality_code TEXT NOT NULL,
-        date_of_birth TEXT NOT NULL,
-        primary_position TEXT NOT NULL,
-        secondary_positions TEXT NOT NULL,
-        role TEXT NOT NULL,
-        photo_url TEXT,
-        photo_source TEXT NOT NULL DEFAULT 'transfermarkt',
-        career_start_year INTEGER,
-        career_end_year INTEGER,
-        current_team TEXT,
-        current_league TEXT,
-        market_value_eur INTEGER,
-        highest_market_value_eur INTEGER,
-        international_caps INTEGER,
-        international_goals INTEGER,
-        category TEXT NOT NULL DEFAULT 'CURRENT',
-        search_text TEXT NOT NULL,
-        source TEXT NOT NULL DEFAULT 'database',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-      CREATE INDEX IF NOT EXISTS idx_players_name ON players(name);
-      CREATE INDEX IF NOT EXISTS idx_players_search ON players(search_text);
-    `);
-
-    const insertStmt = db.prepare(`
-      INSERT OR REPLACE INTO players (
-        id, external_ids, name, first_name, last_name, nationality, nationality_code,
-        date_of_birth, primary_position, secondary_positions, role, photo_url, photo_source,
-        current_team, current_league, category, search_text, source, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const insertMany = db.transaction((playerList: typeof PLAYERS) => {
-      for (const p of playerList) {
-        insertStmt.run(
-          p.id,
-          JSON.stringify({}),
-          p.name,
-          p.firstName || '',
-          p.lastName || '',
-          p.nationality || 'Unknown',
-          p.nationalityCode || 'XX',
-          p.dateOfBirth || '2000-01-01',
-          p.position || 'CM',
-          JSON.stringify([]),
-          p.role || 'Midfielder',
-          p.photo || null,
-          'generated',
-          p.team || 'Unknown',
-          p.league || 'Unknown',
-          p.category || 'CURRENT',
-          `${p.name} ${p.firstName || ''} ${p.lastName || ''} ${p.team || ''} ${p.nationality || ''}`.toLowerCase(),
-          p.source || 'database',
-          new Date().toISOString(),
-          new Date().toISOString()
-        );
-      }
-    });
-
-    insertMany(PLAYERS);
-    dbInstance = db;
-    return db;
-  } catch (memErr) {
-    console.error('In-memory DB fallback fatal error:', memErr);
-    throw memErr;
-  }
-}
-
-export function closePlayerDB(): void {
-  if (dbInstance) {
-    try {
-      dbInstance.close();
-    } catch {
-      // ignore
-    }
-    dbInstance = null;
-  }
 }
 
 const POSITION_MAP: Record<string, Player['primaryPosition']> = {
@@ -308,33 +161,33 @@ export function getRoleFromPosition(position: Player['primaryPosition']): Player
   }
 }
 
-interface PlayerRow {
+export interface PlayerRow {
   id: string;
-  external_ids: string;
+  external_ids?: string;
   name: string;
-  first_name: string;
-  last_name: string;
-  nationality: string;
-  nationality_code: string;
-  date_of_birth: string;
-  primary_position: string;
-  secondary_positions: string;
-  role: string;
-  photo_url: string | null;
-  photo_source: string;
-  career_start_year: number | null;
-  career_end_year: number | null;
-  current_team: string | null;
-  current_league: string | null;
-  market_value_eur: number | null;
-  highest_market_value_eur: number | null;
-  international_caps: number | null;
-  international_goals: number | null;
-  category: string;
-  search_text: string;
-  source: string;
-  created_at: string;
-  updated_at: string;
+  first_name?: string;
+  last_name?: string;
+  nationality?: string;
+  nationality_code?: string;
+  date_of_birth?: string;
+  primary_position?: string;
+  secondary_positions?: string;
+  role?: string;
+  photo_url?: string | null;
+  photo_source?: string;
+  career_start_year?: number | null;
+  career_end_year?: number | null;
+  current_team?: string | null;
+  current_league?: string | null;
+  market_value_eur?: number | null;
+  highest_market_value_eur?: number | null;
+  international_caps?: number | null;
+  international_goals?: number | null;
+  category?: string;
+  search_text?: string;
+  source?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export function rowToPlayer(row: unknown): Player {

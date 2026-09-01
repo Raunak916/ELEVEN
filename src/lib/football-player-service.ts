@@ -1,14 +1,14 @@
 /**
  * Football Player Service (Server-side only)
  *
- * Abstraction layer for player search across multiple data sources.
- * Currently uses local SQLite database (transfermarkt-datasets + curated catalog).
+ * Abstraction layer for player search across Turso Database + curated catalog.
  *
  * IMPORTANT: This file must ONLY be imported in server-side code (API routes, server components).
  */
 
-import { getPlayerDB, rowToPlayer, stripAccents, Player } from './player-db';
+import { rowToPlayer, stripAccents, Player } from './player-db';
 import { PLAYERS } from './players-data';
+import { turso } from './turso';
 
 function toDBPlayer(p: any): Player {
   return {
@@ -44,10 +44,6 @@ function toDBPlayer(p: any): Player {
 let serviceInstance: FootballPlayerService | null = null;
 
 export class FootballPlayerService {
-  private getDb() {
-    return getPlayerDB();
-  }
-
   /**
    * Search players by name with high-recall fuzzy & multi-token matching
    */
@@ -92,46 +88,14 @@ export class FootballPlayerService {
     let dbMatches: Player[] = [];
 
     try {
-      const db = this.getDb();
-
-      // 2. FTS5 Search
       if (queryTokens.length > 0) {
-        try {
-          const ftsQuery = queryTokens.map((term) => `"${term}"*`).join(' ');
-          const rows = db.prepare(`
-            SELECT p.*
-            FROM players_fts fts
-            JOIN players p ON p.rowid = fts.rowid
-            WHERE players_fts MATCH ?
-            ORDER BY 
-              CASE p.category
-                WHEN 'LEGEND' THEN 4
-                WHEN 'ICON' THEN 3
-                WHEN 'HERO' THEN 2
-                ELSE 1
-              END DESC,
-              COALESCE(p.highest_market_value_eur, p.market_value_eur, 0) DESC,
-              bm25(players_fts) ASC
-            LIMIT ?
-          `).all(ftsQuery, limit);
+        const likeConditions = queryTokens.map(() => `search_text LIKE ?`).join(' AND ');
+        const likeParams = queryTokens.map((t) => `%${t}%`);
 
-          if (rows.length > 0) {
-            dbMatches = rows.map(rowToPlayer);
-          }
-        } catch {
-          // FTS fallback
-        }
-      }
-
-      // 3. Accent-Insensitive Multi-Token LIKE
-      if (dbMatches.length < limit && queryTokens.length > 0) {
-        try {
-          const likeConditions = queryTokens.map(() => `unaccent(search_text) LIKE ?`).join(' AND ');
-          const likeParams = queryTokens.map((t) => `%${t}%`);
-
-          const rows = db.prepare(`
+        const rows = (await turso.execute({
+          sql: `
             SELECT * FROM players
-            WHERE ${likeConditions} OR unaccent(search_text) LIKE ? OR unaccent(name) LIKE ?
+            WHERE (${likeConditions}) OR search_text LIKE ? OR name LIKE ?
             ORDER BY 
               CASE category
                 WHEN 'LEGEND' THEN 4
@@ -139,55 +103,31 @@ export class FootballPlayerService {
                 WHEN 'HERO' THEN 2
                 ELSE 1
               END DESC,
-              COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
+              rating DESC
             LIMIT ?
-          `).all(...likeParams, `%${cleanQuery}%`, `%${cleanQuery}%`, limit);
+          `,
+          args: [...likeParams, `%${cleanQuery}%`, `%${cleanQuery}%`, limit]
+        })).rows;
 
-          const existingIds = new Set(dbMatches.map((p) => p.id));
-          for (const row of rows) {
-            const player = rowToPlayer(row);
-            if (!existingIds.has(player.id)) {
-              dbMatches.push(player);
-              existingIds.add(player.id);
-            }
-          }
-        } catch (likeErr) {
-          // Fallback without unaccent function if unavailable
-          try {
-            const likeConditions = queryTokens.map(() => `search_text LIKE ?`).join(' AND ');
-            const likeParams = queryTokens.map((t) => `%${t}%`);
-            const rows = db.prepare(`
-              SELECT * FROM players
-              WHERE ${likeConditions}
-              ORDER BY COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
-              LIMIT ?
-            `).all(...likeParams, limit);
-
-            const existingIds = new Set(dbMatches.map((p) => p.id));
-            for (const row of rows) {
-              const player = rowToPlayer(row);
-              if (!existingIds.has(player.id)) {
-                dbMatches.push(player);
-                existingIds.add(player.id);
-              }
-            }
-          } catch {
-            // Ignore
-          }
+        if (rows && rows.length > 0) {
+          dbMatches = rows.map(rowToPlayer);
         }
       }
 
-      // 4. Surname / individual token fallback (e.g. Alisson, Mbappé, Yamal, Modrić)
+      // Surname / individual token fallback if no matches found
       if (dbMatches.length === 0 && queryTokens.length > 0) {
         const primaryTokens = queryTokens.filter((t) => t.length >= 3);
         for (const token of primaryTokens) {
           try {
-            const rows = db.prepare(`
-              SELECT * FROM players
-              WHERE unaccent(name) LIKE ? OR search_text LIKE ?
-              ORDER BY COALESCE(highest_market_value_eur, market_value_eur, 0) DESC
-              LIMIT ?
-            `).all(`%${token}%`, `%${token}%`, 10);
+            const rows = (await turso.execute({
+              sql: `
+                SELECT * FROM players
+                WHERE name LIKE ? OR search_text LIKE ?
+                ORDER BY rating DESC
+                LIMIT ?
+              `,
+              args: [`%${token}%`, `%${token}%`, 10]
+            })).rows;
 
             const existingIds = new Set(dbMatches.map((p) => p.id));
             for (const row of rows) {
@@ -204,7 +144,7 @@ export class FootballPlayerService {
         }
       }
     } catch (err) {
-      console.warn('Database search exception:', err);
+      console.warn('Turso player database search exception:', err);
     }
 
     // Combine curated matches first, then DB matches, deduplicating by normalized name
@@ -227,8 +167,10 @@ export class FootballPlayerService {
    */
   async getPlayer(id: string): Promise<Player | null> {
     try {
-      const db = this.getDb();
-      const row = db.prepare('SELECT * FROM players WHERE id = ?').get(id) as unknown;
+      const row = (await turso.execute({
+        sql: 'SELECT * FROM players WHERE id = ?',
+        args: [id]
+      })).rows[0];
       if (row) return rowToPlayer(row);
     } catch {
       // fallback
@@ -251,8 +193,7 @@ export class FootballPlayerService {
     currentCount: number;
   }> {
     try {
-      const db = this.getDb();
-      const stats = db.prepare(`
+      const stats = (await turso.execute(`
         SELECT 
           COUNT(*) as total,
           SUM(CASE WHEN category = 'LEGEND' THEN 1 ELSE 0 END) as legends,
@@ -260,14 +201,14 @@ export class FootballPlayerService {
           SUM(CASE WHEN category = 'HERO' THEN 1 ELSE 0 END) as heroes,
           SUM(CASE WHEN category = 'CURRENT' THEN 1 ELSE 0 END) as currents
         FROM players
-      `).get() as any;
+      `)).rows[0] as any;
 
       return {
-        totalPlayers: stats.total || PLAYERS.length,
-        legendCount: stats.legends || PLAYERS.filter((p) => p.category === 'LEGEND').length,
-        iconCount: stats.icons || PLAYERS.filter((p) => p.category === 'ICON').length,
-        heroCount: stats.heroes || PLAYERS.filter((p) => p.category === 'HERO').length,
-        currentCount: stats.currents || PLAYERS.filter((p) => p.category === 'CURRENT').length,
+        totalPlayers: Number(stats?.total) || PLAYERS.length,
+        legendCount: Number(stats?.legends) || PLAYERS.filter((p) => p.category === 'LEGEND').length,
+        iconCount: Number(stats?.icons) || PLAYERS.filter((p) => p.category === 'ICON').length,
+        heroCount: Number(stats?.heroes) || PLAYERS.filter((p) => p.category === 'HERO').length,
+        currentCount: Number(stats?.currents) || PLAYERS.filter((p) => p.category === 'CURRENT').length,
       };
     } catch {
       return {

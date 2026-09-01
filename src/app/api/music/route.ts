@@ -3,7 +3,7 @@ import { getAllVinylCategoriesFromDB, addSongToVinylDB, removeSongFromVinylDB } 
 
 export async function GET() {
   try {
-    const vinyls = getAllVinylCategoriesFromDB();
+    const vinyls = await getAllVinylCategoriesFromDB();
     return NextResponse.json({ success: true, vinyls });
   } catch (error) {
     console.error('Failed to fetch vinyls from DB:', error);
@@ -20,13 +20,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    addSongToVinylDB(vinylId, {
+    await addSongToVinylDB(vinylId, {
       title: song.title.trim(),
       artist: (song.artist || 'Original Soundtrack').trim(),
       url: song.url.trim(),
     });
 
-    const updatedVinyls = getAllVinylCategoriesFromDB();
+    const updatedVinyls = await getAllVinylCategoriesFromDB();
     return NextResponse.json({ success: true, vinyls: updatedVinyls });
   } catch (error) {
     console.error('Failed to add song to vinyl DB:', error);
@@ -43,8 +43,8 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, error: 'Missing vinylId or title' }, { status: 400 });
     }
 
-    removeSongFromVinylDB(vinylId, title);
-    const updatedVinyls = getAllVinylCategoriesFromDB();
+    await removeSongFromVinylDB(vinylId, title);
+    const updatedVinyls = await getAllVinylCategoriesFromDB();
     return NextResponse.json({ success: true, vinyls: updatedVinyls });
   } catch (error) {
     console.error('Failed to delete song from vinyl DB:', error);

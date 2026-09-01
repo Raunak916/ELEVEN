@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFootballPlayerService } from '@/lib/football-player-service';
-import { getPlayerDB, rowToPlayer, stripAccents } from '@/lib/player-db';
+import { rowToPlayer, stripAccents } from '@/lib/player-db';
+import { turso } from '@/lib/turso';
 import { Player, PlayerRole, Currency, PlayerCategory, PlayerPosition } from '@/lib/types';
 import { generatePlayerPhoto } from '@/lib/player-photo';
 
@@ -257,7 +258,6 @@ export async function POST(request: NextRequest) {
     }
 
     const service = getFootballPlayerService();
-    const db = getPlayerDB();
     const results: MatchResult[] = [];
 
     for (const row of rows) {
@@ -294,16 +294,17 @@ export async function POST(request: NextRequest) {
           try {
             const cleanName = row.name.replace(/[^a-zA-Z0-9\s]/g, '').trim();
             if (cleanName) {
-              const customPlayers = db
-                .prepare(`
+              const rows = (await turso.execute({
+                sql: `
                   SELECT * FROM players
                   WHERE source = 'custom'
                   AND search_text LIKE ?
                   ORDER BY created_at DESC
                   LIMIT 10
-                `)
-                .all(`%${cleanName.toLowerCase()}%`)
-                .map(rowToPlayer);
+                `,
+                args: [`%${cleanName.toLowerCase()}%`]
+              })).rows;
+              const customPlayers = rows.map(rowToPlayer);
 
               const seen = new Set(dbCandidates.map((p) => p.id));
               for (const c of customPlayers) {
