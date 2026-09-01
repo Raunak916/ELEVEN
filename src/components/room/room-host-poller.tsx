@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useRoomStore } from '@/lib/room-store';
 import { useAuctionStore } from '@/lib/auction-store';
@@ -12,7 +12,6 @@ export function RoomHostPoller() {
   const isAuctionRoute = pathname?.startsWith('/auction');
 
   const hostedRoom = useRoomStore((state) => state.hostedRoom);
-  const createdCode = useRoomStore((state) => state.createdCode);
   const syncHostedRoomParticipants = useRoomStore((state) => state.syncHostedRoomParticipants);
   const hydrated = useHydrated();
 
@@ -33,13 +32,13 @@ export function RoomHostPoller() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
+  const activeRoomCode = hostedRoom?.code;
+  const isCompletedOrClosed = hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED';
+
   // 1. Participant Sync Heartbeat
   useEffect(() => {
-    if (!hydrated || !isAuctionRoute) return;
+    if (!hydrated || !isAuctionRoute || !activeRoomCode || isCompletedOrClosed) return;
     if (settings.auctionMode === 'VANILLA') return;
-    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
-    const roomCode = hostedRoom?.code || createdCode;
-    if (!roomCode) return;
 
     let isMounted = true;
     let timer: NodeJS.Timeout;
@@ -52,7 +51,7 @@ export function RoomHostPoller() {
 
         const currentTeams = useAuctionStore.getState().teams;
         const contestantParticipants = participants.filter((p) => p.role === 'CONTESTANT');
-        
+
         // Additive Cumulative Merging
         const updatedTeams: Team[] = [...currentTeams];
         let hasChanges = false;
@@ -94,7 +93,7 @@ export function RoomHostPoller() {
         console.warn('Host room participant sync warning:', err);
       } finally {
         if (isMounted) {
-          timer = setTimeout(syncParticipants, 5000);
+          timer = setTimeout(syncParticipants, 4000);
         }
       }
     };
@@ -104,145 +103,102 @@ export function RoomHostPoller() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, isAuctionRoute, hostedRoom?.code, createdCode, settings.auctionMode, syncHostedRoomParticipants]);
+  }, [hydrated, isAuctionRoute, activeRoomCode, isCompletedOrClosed, settings.auctionMode, syncHostedRoomParticipants]);
 
-  const roomVersionRef = useRef(Date.now());
-
-  // 2. Broadcast Drawn Player
-  useEffect(() => {
-    if (!hydrated || !isAuctionRoute) return;
-    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
-    const roomCode = hostedRoom?.code || createdCode;
+  // 2. High-Speed Unified Room Sync Broadcast (Atomic Snapshot)
+  const broadcastSync = useCallback(async () => {
+    const hosted = useRoomStore.getState().hostedRoom;
+    if (!hosted || hosted.status === 'COMPLETED' || hosted.status === 'CLOSED') return;
+    const roomCode = hosted.code;
     if (!roomCode) return;
 
-    roomVersionRef.current = Date.now();
-    let isMounted = true;
-    let timer: NodeJS.Timeout;
+    try {
+      const assignedPlayers = auctionPlayersRef.current.filter(
+        (p) =>
+          p.status === 'UNSOLD' ||
+          p.status === 'DRAWN' ||
+          Boolean(p.teamId) ||
+          (p.soldPrice !== null && p.soldPrice !== undefined) ||
+          Boolean(p.drawnAt)
+      );
 
-    const broadcastDraw = async () => {
-      if (!isMounted) return;
-      try {
-        await fetch('/api/rooms/draw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: roomCode,
-            drawnPlayer: drawnPlayerRef.current || null,
-            drawPhase: drawPhaseRef.current || 'idle',
-            version: roomVersionRef.current,
-          }),
-          signal: AbortSignal.timeout(3000),
-        });
-      } catch (err) {
-        console.warn('Failed to broadcast draw state:', err);
-      } finally {
-        if (isMounted) {
-          timer = setTimeout(broadcastDraw, 10000);
-        }
-      }
-    };
-
-    broadcastDraw();
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-    };
-  }, [hydrated, isAuctionRoute, hostedRoom?.code, hostedRoom?.status, createdCode, drawnPlayer, drawPhase]);
-
-  // 3. Broadcast Roster & Teams
-  useEffect(() => {
-    if (!hydrated || !isAuctionRoute) return;
-    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
-    const roomCode = hostedRoom?.code || createdCode;
-    if (!roomCode) return;
-
-    roomVersionRef.current = Date.now();
-    let isMounted = true;
-    let timer: NodeJS.Timeout;
-
-    const broadcastRoster = async () => {
-      if (!isMounted) return;
-      try {
-        const assignedPlayers = auctionPlayersRef.current.filter(
-          (p) =>
-            p.status === 'UNSOLD' ||
-            p.status === 'DRAWN' ||
-            Boolean(p.teamId) ||
-            (p.soldPrice !== null && p.soldPrice !== undefined)
-        );
-        await fetch('/api/rooms/roster', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: roomCode,
-            teams: teamsRef.current,
-            assignedPlayers,
-            settings: {
-              currency: settingsRef.current.currency,
-              maxTeamBudget: settingsRef.current.maxTeamBudget,
-            },
-            version: roomVersionRef.current,
-          }),
-          signal: AbortSignal.timeout(3500),
-        });
-      } catch (err) {
-        console.warn('Failed to broadcast roster state:', err);
-      } finally {
-        if (isMounted) {
-          timer = setTimeout(broadcastRoster, 10000);
-        }
-      }
-    };
-
-    broadcastRoster();
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-    };
-  }, [hydrated, isAuctionRoute, hostedRoom?.code, hostedRoom?.status, createdCode, teams, auctionPlayers, settings]);
-
-  // 4. Broadcast Cards State
-  useEffect(() => {
-    if (!hydrated || !isAuctionRoute) return;
-    if (hostedRoom?.status === 'COMPLETED' || hostedRoom?.status === 'CLOSED') return;
-    const roomCode = hostedRoom?.code || createdCode;
-    if (!roomCode) return;
-
-    let isMounted = true;
-    let timer: NodeJS.Timeout;
-
-    const broadcastCards = async () => {
-      if (!isMounted) return;
+      let powerCards: any[] = [];
+      let sickCards: any[] = [];
       try {
         const powerStr = localStorage.getItem('football-auction-power-cards-v2');
         const sickStr = localStorage.getItem('football-auction-sick-cards-v2');
-        const powerCards = powerStr ? JSON.parse(powerStr) : [];
-        const sickCards = sickStr ? JSON.parse(sickStr) : [];
+        powerCards = powerStr ? JSON.parse(powerStr) : [];
+        sickCards = sickStr ? JSON.parse(sickStr) : [];
+      } catch {}
 
-        await fetch('/api/rooms/cards', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: roomCode,
+      await fetch('/api/rooms/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: roomCode,
+          currentDraw: {
+            drawnPlayer: drawnPlayerRef.current || null,
+            drawPhase: drawPhaseRef.current || 'idle',
+          },
+          rosterState: {
+            teams: teamsRef.current,
+            assignedPlayers,
+          },
+          cardsState: {
             powerCards,
             sickCards,
-            version: roomVersionRef.current,
-          }),
-          signal: AbortSignal.timeout(3000),
-        });
-      } catch {} finally {
-        if (isMounted) {
-          timer = setTimeout(broadcastCards, 15000);
-        }
+          },
+          settings: {
+            currency: settingsRef.current.currency,
+            maxTeamBudget: settingsRef.current.maxTeamBudget,
+          },
+          status: hosted.status || 'LIVE',
+          version: Date.now(),
+        }),
+        signal: AbortSignal.timeout(3500),
+      });
+    } catch (err) {
+      console.warn('Failed to broadcast unified room state:', err);
+    }
+  }, []);
+
+  // Reactive trigger on any state change with heartbeat
+  useEffect(() => {
+    if (!hydrated || !isAuctionRoute || !activeRoomCode || isCompletedOrClosed) return;
+
+    let isMounted = true;
+    let timer: NodeJS.Timeout;
+
+    // Immediately sync on change
+    broadcastSync();
+
+    // Heartbeat every 2.5 seconds
+    const runHeartbeat = async () => {
+      if (!isMounted) return;
+      await broadcastSync();
+      if (isMounted) {
+        timer = setTimeout(runHeartbeat, 2500);
       }
     };
 
-    broadcastCards();
+    timer = setTimeout(runHeartbeat, 2500);
+
     return () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [hydrated, isAuctionRoute, hostedRoom?.code, createdCode]);
+  }, [
+    hydrated,
+    isAuctionRoute,
+    activeRoomCode,
+    isCompletedOrClosed,
+    drawnPlayer,
+    drawPhase,
+    teams,
+    auctionPlayers,
+    settings,
+    broadcastSync,
+  ]);
 
   return null;
 }

@@ -475,3 +475,72 @@ export async function updateRoomCards(
 
   return true;
 }
+
+export async function updateRoomFullState(
+  code: string,
+  state: {
+    currentDraw?: { drawnPlayer: any; drawPhase: string } | null;
+    rosterState?: { teams: any[]; assignedPlayers: any[] } | null;
+    cardsState?: { powerCards: any[]; sickCards: any[] } | null;
+    settings?: { currency: string; maxTeamBudget: number } | null;
+    status?: RoomStatus;
+  },
+  version?: number
+): Promise<boolean> {
+  if (!code) return false;
+  const room = await ensureRoom(code);
+
+  const now = new Date().toISOString();
+  const effectiveVersion = version && version > 0 ? version : Date.now();
+
+  const drawJson = state.currentDraw !== undefined ? (state.currentDraw ? JSON.stringify(state.currentDraw) : null) : (room.currentDraw ? JSON.stringify(room.currentDraw) : null);
+  const rosterJson = state.rosterState !== undefined ? (state.rosterState ? JSON.stringify(state.rosterState) : null) : (room.rosterState ? JSON.stringify(room.rosterState) : null);
+  const cardsJson = state.cardsState !== undefined ? (state.cardsState ? JSON.stringify(state.cardsState) : null) : (room.cardsState ? JSON.stringify(room.cardsState) : null);
+  const settingsJson = state.settings !== undefined ? (state.settings ? JSON.stringify(state.settings) : null) : (room.settings ? JSON.stringify(room.settings) : null);
+  const nextStatus: RoomStatus =
+    state.status === 'COMPLETED' || room.status === 'COMPLETED'
+      ? 'COMPLETED'
+      : (state.status || room.status);
+
+  // Cumulative participant merge: populate this room's participants with all host teams
+  const updatedParticipants = [...room.participants];
+  if (state.rosterState?.teams && Array.isArray(state.rosterState.teams)) {
+    for (const t of state.rosterState.teams) {
+      const exists = updatedParticipants.some((p) => p.id === t.id);
+      if (!exists) {
+        updatedParticipants.push({
+          id: t.id,
+          name: t.owner || `Manager ${t.id}`,
+          teamName: t.name || `Club ${t.id}`,
+          role: 'CONTESTANT',
+          joinedAt: t.createdAt || now,
+          lastSeenAt: now,
+        });
+      }
+    }
+  }
+  const participantsJson = JSON.stringify(updatedParticipants);
+
+  try {
+    await turso.execute({
+      sql: `
+        UPDATE rooms
+        SET current_draw_json = ?,
+            roster_state_json = ?,
+            cards_state_json = ?,
+            settings_json = ?,
+            participants_json = ?,
+            status = ?,
+            version = ?,
+            updated_at = ?
+        WHERE id = ?
+      `,
+      args: [drawJson, rosterJson, cardsJson, settingsJson, participantsJson, nextStatus, effectiveVersion, now, room.id]
+    });
+  } catch (err) {
+    console.warn('Failed to persist full room update to SQLite:', err);
+  }
+
+  return true;
+}
+

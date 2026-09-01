@@ -18,7 +18,10 @@ export function ContestantCompletedScreen({ onDismiss }: { onDismiss?: () => voi
   const { teams, auctionPlayers, settings } = useAuctionStore();
 
   const myTeamId = activeSession?.participantId;
-  const myTeam = teams.find((t) => t.id === myTeamId);
+  const myTeam =
+    teams.find((t) => t.id === myTeamId) ||
+    teams.find((t) => t.name.toLowerCase() === (activeSession?.teamName || '').toLowerCase()) ||
+    (teams.length === 1 ? teams[0] : null);
   const myTeamName = myTeam?.name || activeSession?.teamName || 'My Club';
   const myOwnerName = myTeam?.owner || activeSession?.name || 'Manager';
 
@@ -26,8 +29,9 @@ export function ContestantCompletedScreen({ onDismiss }: { onDismiss?: () => voi
   const maxBudget = myTeam?.customMaxBudget ?? (settings?.maxTeamBudget || activeSession?.settings?.maxTeamBudget || 200000000);
 
   // My squad calculations
+  const targetTeamId = myTeam?.id || myTeamId;
   const myPlayers = auctionPlayers.filter(
-    (p) => p.teamId === myTeamId && p.soldPrice !== null && p.soldPrice !== undefined
+    (p) => p.teamId === targetTeamId && p.soldPrice !== null && p.soldPrice !== undefined
   );
   const myPlayerPurchases = myPlayers.reduce((sum, p) => sum + (p.soldPrice ?? p.basePrice), 0);
   const myExpenses = myTeam?.otherExpenses || [];
@@ -352,24 +356,12 @@ export function ContestantCompletedScreen({ onDismiss }: { onDismiss?: () => voi
               </div>
             </div>
 
-            {/* Bottom Credits & About Me Button */}
-            <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Bottom Footer */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
                 Engineered for live football auctions &amp; competitive draft rooms.
               </p>
-
-              {/* ABOUT ME BUTTON (Identical to Landing Page) */}
-              <button
-                type="button"
-                onClick={() => router.push('/credits')}
-                className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.25em] text-white/90 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/15 hover:text-white shadow-lg shrink-0"
-                title="Read about the creator & experience the 3D credits"
-              >
-                <span className="relative z-10">ABOUT ME</span>
-                <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 text-[var(--gold)]" />
-              </button>
             </div>
-
           </div>
 
         </div>

@@ -150,23 +150,12 @@ export function ContestantAuctionSummaryScreen() {
           </div>
         </div>
 
-        {/* Right: Completed Status + About Me Button + Leave Button */}
+        {/* Right: Completed Status + Leave Button */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--gold)]/15 border border-[var(--gold)]/30 text-[var(--gold)] text-xs font-mono font-black tracking-wider uppercase shadow-inner">
             <Trophy className="w-3.5 h-3.5" />
             <span>Auction Completed</span>
           </div>
-
-          {/* ABOUT ME BUTTON (Identical to Landing Page) */}
-          <button
-            type="button"
-            onClick={() => router.push('/credits')}
-            className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 sm:px-5 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/15 hover:text-white shadow-lg"
-            title="Read about the creator & experience the 3D credits"
-          >
-            <span className="relative z-10">ABOUT ME</span>
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 text-[var(--gold)]" />
-          </button>
 
           <button
             type="button"
@@ -473,24 +462,11 @@ export function ContestantAuctionSummaryScreen() {
               </div>
             </div>
 
-            {/* Bottom Credits & About Me Card */}
-            <div className="p-5 rounded-3xl bg-white/[0.03] backdrop-blur-2xl border border-white/10 flex items-center justify-between gap-4">
-              <div>
-                <h4 className="font-heading font-black text-sm text-white">Experience Eleven Credits</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Explore the 3D cinematic credits &amp; creator profile.
-                </p>
-              </div>
-
-              {/* ABOUT ME BUTTON */}
-              <button
-                type="button"
-                onClick={() => router.push('/credits')}
-                className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/15 hover:text-white shadow-lg shrink-0"
-              >
-                <span>ABOUT ME</span>
-                <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 text-[var(--gold)]" />
-              </button>
+            {/* Bottom Footer */}
+            <div className="p-4 rounded-3xl bg-white/[0.03] backdrop-blur-2xl border border-white/10 flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Engineered for live football auctions &amp; competitive draft rooms.
+              </p>
             </div>
 
           </div>
