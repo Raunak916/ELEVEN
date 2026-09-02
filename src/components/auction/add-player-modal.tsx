@@ -297,39 +297,40 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
       <DialogContent
         showCloseButton={false}
         className={cn(
-          'max-w-4xl w-[94vw] max-h-[88vh] p-0 gap-0 overflow-hidden rounded-3xl',
+          'w-[95vw] sm:max-w-3xl md:max-w-4xl lg:max-w-5xl max-h-[88vh] p-0 gap-0 overflow-hidden rounded-3xl',
           'bg-[#0a0c10]/98 text-foreground backdrop-blur-3xl border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.8)]'
         )}
       >
         {view === 'search' ? (
           <div className="flex flex-col h-full max-h-[88vh]">
             {/* Header */}
-            <DialogHeader className="p-6 sm:p-7 pb-4 border-b border-white/10">
-              <div className="flex items-start justify-between">
-                <div>
-                  <DialogTitle className="text-xl sm:text-2xl font-heading font-black text-white flex items-center gap-2 tracking-tight">
-                    <Sparkles className="h-5 w-5 text-[var(--gold)]" />
-                    ADD PLAYER TO AUCTION
+            <DialogHeader className="p-5 sm:p-7 pb-4 border-b border-white/10 shrink-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="text-lg sm:text-2xl font-heading font-black text-white flex items-center gap-2 tracking-tight">
+                    <Sparkles className="h-5 w-5 text-[var(--gold)] shrink-0" />
+                    <span className="truncate">ADD PLAYER TO AUCTION</span>
                   </DialogTitle>
-                  <DialogDescription className="text-white/60 text-xs sm:text-sm mt-1">
+                  <DialogDescription className="text-white/60 text-xs sm:text-sm mt-0.5 truncate">
                     Search, select, and configure a football player for the tournament
                   </DialogDescription>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => setView('create')}
-                    className="gap-2 text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl border-[var(--gold)]/30 text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all shadow-sm"
+                    className="gap-1.5 text-xs font-semibold px-3 py-1.5 h-9 rounded-xl border-[var(--gold)]/30 text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all shadow-sm"
                   >
-                    <UserPlus className="h-4 w-4" />
-                    <span className="hidden xs:inline">Create Custom Player</span>
+                    <UserPlus className="h-3.5 w-3.5 shrink-0" />
+                    <span className="hidden xs:inline">Custom Player</span>
                     <span className="xs:hidden">Custom</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => onOpenChange(false)}
-                    className="h-9 w-9 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                    className="h-9 w-9 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors shrink-0"
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -338,7 +339,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </DialogHeader>
 
             {/* Search Input */}
-            <div className="px-6 sm:px-7 py-4">
+            <div className="px-5 sm:px-7 py-4 shrink-0">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
                 <Input
@@ -360,7 +361,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </div>
 
             {/* Results */}
-            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 sm:px-7 pb-6 space-y-3 overscroll-contain scrollbar-thin">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-5 sm:px-7 pb-6 space-y-3 overscroll-contain scrollbar-thin">
               {hasSearched && !isLoading && results.length === 0 && (
                 <div className="text-center py-16">
                   <div className="mx-auto w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
@@ -393,7 +394,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
                           className={cn(
-                            'group relative flex items-center gap-4 p-3.5 sm:p-4 rounded-2xl',
+                            'group relative flex items-center justify-between gap-3.5 sm:gap-5 p-3.5 sm:p-4 rounded-2xl',
                             'bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-[var(--gold)]/40',
                             'transition-all duration-200 shadow-sm',
                             isAdded && 'opacity-60 bg-white/[0.01]'
@@ -402,7 +403,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                         >
                           {/* Player Face */}
                           <div className="relative flex-shrink-0">
-                            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-black/60 border border-white/10 shadow-inner">
+                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-black/60 border border-white/10 shadow-inner">
                               <Image
                                 src={player.photo}
                                 alt={player.name}
@@ -415,58 +416,55 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                           </div>
 
                           {/* Player Info */}
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 pr-2">
                             <h3 className="font-heading font-black text-base sm:text-lg text-white truncate group-hover:text-[var(--gold)] transition-colors">
                               {player.name}
                             </h3>
-                            <div className="flex items-center gap-2 text-xs sm:text-sm text-white/60 mt-0.5 flex-wrap">
+                            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-white/60 mt-0.5 flex-wrap">
                               <CountryFlag
                                 code={player.nationalityCode}
-                                className="h-3.5 w-4.5 rounded-sm"
+                                name={player.nationality}
+                                className="h-3.5 w-5 rounded-sm shrink-0"
                               />
-                              <span>{player.nationality}</span>
+                              <span className="truncate">{player.nationality}</span>
                               <span className="text-white/20">·</span>
-                              <span className="text-white/80 font-medium">{player.team}</span>
+                              <span className="text-white/80 font-medium truncate max-w-[140px] sm:max-w-[220px]">{player.team}</span>
                               <span className="text-white/20">·</span>
-                              <span className="font-mono text-xs px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/90">
+                              <span className="font-mono text-xs px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/90 shrink-0">
                                 {player.role}
                               </span>
                               {player.category === 'RETIRED' && (
                                 <>
                                   <span className="text-white/20">·</span>
-                                  <span className="text-amber-400/90 text-xs font-mono">Retired Legend</span>
+                                  <span className="text-amber-400/90 text-xs font-mono shrink-0">Retired Legend</span>
                                 </>
                               )}
                             </div>
                           </div>
 
                           {/* Add Button */}
-                          <div className="flex-shrink-0">
+                          <div className="flex-shrink-0 pl-1">
                             {isAdded ? (
                               <Button
                                 disabled
                                 size="sm"
-                                className={cn(
-                                  'gap-1.5 rounded-lg',
-                                  'bg-[var(--emerald)]/20 text-[var(--emerald)]'
-                                )}
+                                className="h-9 px-3.5 sm:px-4 rounded-xl gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-heading font-bold"
                               >
                                 <Check className="h-4 w-4" />
-                                ADDED
+                                <span className="hidden sm:inline">ADDED</span>
                               </Button>
                             ) : (
                               <Button
                                 onClick={() => handleAddClick(player)}
                                 size="sm"
                                 className={cn(
-                                  'gap-1.5 rounded-lg font-semibold',
-                                  'bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground',
-                                  'shadow-gold hover:shadow-gold-lg',
+                                  'h-9 px-3.5 sm:px-4 rounded-xl gap-1.5 font-heading font-black text-xs uppercase tracking-wider',
+                                  'bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-black shadow-gold',
                                   'transition-all duration-200 hover:scale-105'
                                 )}
                               >
                                 <Plus className="h-4 w-4" />
-                                ADD TO AUCTION
+                                <span className="whitespace-nowrap">ADD TO AUCTION</span>
                               </Button>
                             )}
                           </div>
