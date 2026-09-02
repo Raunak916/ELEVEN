@@ -52,48 +52,48 @@ const POSITIONS: Array<{
     label: 'Goalkeepers',
     shortLabel: 'GK',
     icon: '🥅',
-    color: '#0ea5e9',
-    borderColor: 'border-sky-500/30 hover:border-sky-400/70',
-    bgGradient: 'bg-gradient-to-b from-sky-950/30 via-[#070e17]/80 to-[#050a10]/95',
-    glow: 'hover:shadow-[0_12px_35px_-8px_rgba(14,165,233,0.3)]',
-    badgeBg: 'bg-sky-500/15 border-sky-500/35',
-    badgeText: 'text-sky-300',
+    color: '#38bdf8',
+    borderColor: 'border-white/10 hover:border-white/20',
+    bgGradient: 'bg-white/[0.03] hover:bg-white/[0.06]',
+    glow: 'hover:shadow-[0_12px_30px_-8px_rgba(0,0,0,0.6)]',
+    badgeBg: 'bg-white/5 border-white/10',
+    badgeText: 'text-white/80',
   },
   {
     role: 'Defender',
     label: 'Defenders',
     shortLabel: 'DEF',
     icon: '🛡️',
-    color: '#f59e0b',
-    borderColor: 'border-amber-500/30 hover:border-amber-400/70',
-    bgGradient: 'bg-gradient-to-b from-amber-950/30 via-[#140e06]/80 to-[#0d0903]/95',
-    glow: 'hover:shadow-[0_12px_35px_-8px_rgba(245,158,11,0.3)]',
-    badgeBg: 'bg-amber-500/15 border-amber-500/35',
-    badgeText: 'text-amber-300',
+    color: '#fbbf24',
+    borderColor: 'border-white/10 hover:border-white/20',
+    bgGradient: 'bg-white/[0.03] hover:bg-white/[0.06]',
+    glow: 'hover:shadow-[0_12px_30px_-8px_rgba(0,0,0,0.6)]',
+    badgeBg: 'bg-white/5 border-white/10',
+    badgeText: 'text-white/80',
   },
   {
     role: 'Midfielder',
     label: 'Midfielders',
     shortLabel: 'MID',
     icon: '⚽',
-    color: '#10b981',
-    borderColor: 'border-emerald-500/30 hover:border-emerald-400/70',
-    bgGradient: 'bg-gradient-to-b from-emerald-950/30 via-[#06140e]/80 to-[#030d09]/95',
-    glow: 'hover:shadow-[0_12px_35px_-8px_rgba(16,185,129,0.3)]',
-    badgeBg: 'bg-emerald-500/15 border-emerald-500/35',
-    badgeText: 'text-emerald-300',
+    color: '#34d399',
+    borderColor: 'border-white/10 hover:border-white/20',
+    bgGradient: 'bg-white/[0.03] hover:bg-white/[0.06]',
+    glow: 'hover:shadow-[0_12px_30px_-8px_rgba(0,0,0,0.6)]',
+    badgeBg: 'bg-white/5 border-white/10',
+    badgeText: 'text-white/80',
   },
   {
     role: 'Forward',
     label: 'Attackers',
     shortLabel: 'ATT',
     icon: '⚡',
-    color: '#f43f5e',
-    borderColor: 'border-rose-500/30 hover:border-rose-400/70',
-    bgGradient: 'bg-gradient-to-b from-rose-950/30 via-[#16060a]/80 to-[#0e0306]/95',
-    glow: 'hover:shadow-[0_12px_35px_-8px_rgba(244,63,94,0.3)]',
-    badgeBg: 'bg-rose-500/15 border-rose-500/35',
-    badgeText: 'text-rose-300',
+    color: '#fb7185',
+    borderColor: 'border-white/10 hover:border-white/20',
+    bgGradient: 'bg-white/[0.03] hover:bg-white/[0.06]',
+    glow: 'hover:shadow-[0_12px_30px_-8px_rgba(0,0,0,0.6)]',
+    badgeBg: 'bg-white/5 border-white/10',
+    badgeText: 'text-white/80',
   },
 ];
 
@@ -635,15 +635,15 @@ export default function DashboardPage() {
                           cx="40"
                           cy="40"
                           r="32"
-                          strokeWidth="7"
+                          strokeWidth="6"
                           fill="transparent"
-                          className="stroke-black/50"
+                          className="stroke-white/10"
                         />
                         <motion.circle
                           cx="40"
                           cy="40"
                           r="32"
-                          strokeWidth="7"
+                          strokeWidth="6"
                           fill="transparent"
                           stroke={pos.color}
                           strokeLinecap="round"
@@ -654,13 +654,10 @@ export default function DashboardPage() {
                               2 * Math.PI * 32 - (pos.progress / 100) * (2 * Math.PI * 32),
                           }}
                           transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-                          style={{
-                            filter: `drop-shadow(0 0 6px ${pos.color}80)`,
-                          }}
                         />
                       </svg>
                       <div className="absolute flex flex-col items-center justify-center">
-                        <span className="font-heading font-black text-base sm:text-lg text-foreground tabular-nums drop-shadow-sm">
+                        <span className="font-heading font-black text-base sm:text-lg text-white tabular-nums drop-shadow-sm">
                           {pos.progress.toFixed(0)}%
                         </span>
                       </div>
@@ -668,12 +665,12 @@ export default function DashboardPage() {
 
                     {/* Large Bold Typography for Count & Label */}
                     <div className="w-full space-y-1 pt-1">
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-wide text-foreground group-hover:text-white transition-colors">
+                      <h4 className="font-heading font-bold text-xs sm:text-sm uppercase tracking-wider text-white/60 group-hover:text-white transition-colors">
                         {pos.label}
                       </h4>
-                      <p className="font-heading text-2xl sm:text-3xl font-black text-foreground tabular-nums">
+                      <p className="font-heading text-2xl sm:text-3xl font-black text-white tabular-nums">
                         {pos.count}{' '}
-                        <span className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-white/40">
                           {pos.count === 1 ? 'player' : 'players'}
                         </span>
                       </p>

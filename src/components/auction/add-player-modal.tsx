@@ -295,39 +295,41 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        showCloseButton={false}
         className={cn(
-          'max-w-4xl w-[94vw] max-h-[90vh] p-0 gap-0 overflow-hidden rounded-3xl',
-          'bg-popover/98 text-popover-foreground backdrop-blur-3xl border border-border shadow-2xl'
+          'max-w-4xl w-[94vw] max-h-[88vh] p-0 gap-0 overflow-hidden rounded-3xl',
+          'bg-[#0a0c10]/98 text-foreground backdrop-blur-3xl border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.8)]'
         )}
       >
         {view === 'search' ? (
-          <div className="flex flex-col h-full max-h-[90vh]">
+          <div className="flex flex-col h-full max-h-[88vh]">
             {/* Header */}
-            <DialogHeader className="p-6 pb-4 border-b border-border">
+            <DialogHeader className="p-6 sm:p-7 pb-4 border-b border-white/10">
               <div className="flex items-start justify-between">
                 <div>
-                  <DialogTitle className="text-2xl font-heading font-bold text-foreground flex items-center gap-2">
+                  <DialogTitle className="text-xl sm:text-2xl font-heading font-black text-white flex items-center gap-2 tracking-tight">
                     <Sparkles className="h-5 w-5 text-[var(--gold)]" />
                     ADD PLAYER TO AUCTION
                   </DialogTitle>
-                  <DialogDescription className="text-muted-foreground mt-1">
-                    Search, select and configure a football player
+                  <DialogDescription className="text-white/60 text-xs sm:text-sm mt-1">
+                    Search, select, and configure a football player for the tournament
                   </DialogDescription>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <Button
                     variant="outline"
                     onClick={() => setView('create')}
-                    className="gap-2 text-sm font-medium px-4 py-2 border-[var(--gold)]/30 text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all"
+                    className="gap-2 text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl border-[var(--gold)]/30 text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all shadow-sm"
                   >
                     <UserPlus className="h-4 w-4" />
-                    Create Custom Player
+                    <span className="hidden xs:inline">Create Custom Player</span>
+                    <span className="xs:hidden">Custom</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => onOpenChange(false)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="h-9 w-9 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -336,47 +338,47 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </DialogHeader>
 
             {/* Search Input */}
-            <div className="px-6 py-4">
+            <div className="px-6 sm:px-7 py-4">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
                 <Input
                   autoFocus
                   value={query}
                   onChange={(e) => handleQueryChange(e.target.value)}
-                  placeholder="Search players..."
+                  placeholder="Search players by name, club, or nationality..."
                   className={cn(
-                    'pl-12 pr-4 py-6 text-base',
-                    'bg-card border-input rounded-xl',
+                    'pl-12 pr-4 py-5 sm:py-6 text-sm sm:text-base',
+                    'bg-white/[0.04] border-white/10 rounded-2xl text-white',
                     'focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/30',
-                    'placeholder:text-muted-foreground/60'
+                    'placeholder:text-white/40'
                   )}
                 />
                 {isLoading && (
-                  <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" />
+                  <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--gold)] animate-spin" />
                 )}
               </div>
             </div>
 
             {/* Results */}
-            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 pb-6 overscroll-contain">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 sm:px-7 pb-6 space-y-3 overscroll-contain scrollbar-thin">
               {hasSearched && !isLoading && results.length === 0 && (
                 <div className="text-center py-16">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <Search className="h-8 w-8 text-muted-foreground/50" />
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                    <Search className="h-8 w-8 text-white/40" />
                   </div>
-                  <p className="text-lg font-semibold text-foreground mb-1">No players found</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-lg font-bold text-white mb-1">No players found</p>
+                  <p className="text-sm text-white/60">
                     We couldn&apos;t find a player matching &quot;{query}&quot;.
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Try another spelling or search term.
+                  <p className="text-xs text-white/40 mt-1">
+                    Try another spelling or create a custom player.
                   </p>
                 </div>
               )}
 
               {results.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
+                <div className="space-y-3">
+                  <p className="text-xs uppercase tracking-wider text-white/50 font-mono font-bold mb-3">
                     {results.length} RESULT{results.length !== 1 ? 'S' : ''}
                   </p>
                   <AnimatePresence mode="popLayout">
@@ -391,17 +393,16 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
                           className={cn(
-                            'group relative flex items-center gap-4 p-3 rounded-xl',
-                            'bg-card/70 border border-border',
-                            'transition-all duration-200',
-                            'hover:bg-muted hover:border-[var(--gold)]/30',
-                            isAdded && 'opacity-60'
+                            'group relative flex items-center gap-4 p-3.5 sm:p-4 rounded-2xl',
+                            'bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-[var(--gold)]/40',
+                            'transition-all duration-200 shadow-sm',
+                            isAdded && 'opacity-60 bg-white/[0.01]'
                           )}
                           style={{ minWidth: 0 }}
                         >
                           {/* Player Face */}
                           <div className="relative flex-shrink-0">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted border border-border">
+                            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-black/60 border border-white/10 shadow-inner">
                               <Image
                                 src={player.photo}
                                 alt={player.name}
@@ -415,23 +416,25 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
 
                           {/* Player Info */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-heading font-bold text-lg text-foreground truncate">
+                            <h3 className="font-heading font-black text-base sm:text-lg text-white truncate group-hover:text-[var(--gold)] transition-colors">
                               {player.name}
                             </h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5 flex-wrap">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-white/60 mt-0.5 flex-wrap">
                               <CountryFlag
                                 code={player.nationalityCode}
-                                className="h-4 w-5 rounded-sm"
+                                className="h-3.5 w-4.5 rounded-sm"
                               />
                               <span>{player.nationality}</span>
-                              <span className="text-muted-foreground/40">·</span>
-                              <span>{player.team}</span>
-                              <span className="text-muted-foreground/40">·</span>
-                              <span>{player.role}</span>
+                              <span className="text-white/20">·</span>
+                              <span className="text-white/80 font-medium">{player.team}</span>
+                              <span className="text-white/20">·</span>
+                              <span className="font-mono text-xs px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/90">
+                                {player.role}
+                              </span>
                               {player.category === 'RETIRED' && (
                                 <>
-                                  <span className="text-muted-foreground/40">·</span>
-                                  <span className="text-muted-foreground/80">Retired</span>
+                                  <span className="text-white/20">·</span>
+                                  <span className="text-amber-400/90 text-xs font-mono">Retired Legend</span>
                                 </>
                               )}
                             </div>
@@ -505,18 +508,23 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
           </div>
         ) : view === 'configure' ? (
           /* Configuration Step */
-          <div className="flex flex-col h-full max-h-[90vh]">
+          <div className="flex flex-col h-full max-h-[88vh]">
             {/* Header */}
-            <DialogHeader className="p-6 pb-4 border-b border-border">
+            <DialogHeader className="p-6 sm:p-7 pb-4 border-b border-white/10">
               <div className="flex items-start justify-between">
-                <DialogTitle className="text-xl font-heading font-bold text-foreground">
-                  Configure Player
-                </DialogTitle>
+                <div>
+                  <DialogTitle className="text-xl sm:text-2xl font-heading font-black text-white tracking-tight">
+                    Configure Player
+                  </DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs sm:text-sm mt-1">
+                    Set role, base price, and currency before adding to auction
+                  </DialogDescription>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setView('search')}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="h-9 w-9 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -525,8 +533,8 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
 
             {/* Player Identity */}
             {selectedPlayer && (
-              <div className="px-6 py-4 flex items-center gap-4 border-b border-border bg-muted/30">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-muted border border-border flex-shrink-0">
+              <div className="px-6 sm:px-7 py-4 flex items-center gap-4 border-b border-white/10 bg-white/[0.02]">
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-black/60 border border-white/10 flex-shrink-0 shadow-inner">
                   <Image
                     src={selectedPlayer.photo}
                     alt={selectedPlayer.name}
@@ -537,33 +545,37 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-heading font-bold text-xl text-foreground truncate">
+                  <h3 className="font-heading font-black text-lg sm:text-xl text-white truncate">
                     {selectedPlayer.name}
                   </h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-white/60 mt-1 flex-wrap">
                     <CountryFlag
                       code={selectedPlayer.nationalityCode}
-                      className="h-4 w-5 rounded-sm"
+                      className="h-3.5 w-4.5 rounded-sm"
                     />
                     <span>{selectedPlayer.nationality}</span>
-                    <span className="text-muted-foreground/40">·</span>
-                    <span>{selectedPlayer.role}</span>
+                    <span className="text-white/20">·</span>
+                    <span className="text-white/80 font-medium">{selectedPlayer.team}</span>
+                    <span className="text-white/20">·</span>
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/90">
+                      {selectedPlayer.role}
+                    </span>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Configuration Form */}
-            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 py-6 space-y-6 overscroll-contain">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 sm:px-7 py-6 space-y-6 overscroll-contain scrollbar-thin">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                   Auction Role
                 </Label>
                 <Select value={configRole} onValueChange={(v) => setConfigRole(v as PlayerRole)}>
-                  <SelectTrigger className="bg-card border-input focus:border-[var(--gold)]/50">
+                  <SelectTrigger className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-[#0e1117] border-white/15 text-white">
                     {ROLE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -574,31 +586,31 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                   Base Price
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 font-semibold">
                     {CURRENCY_SYMBOLS[configCurrency]}
                   </span>
                   <Input
                     type="number"
                     value={configPrice}
                     onChange={(e) => setConfigPrice(e.target.value)}
-                    className="pl-8 bg-card border-input focus:border-[var(--gold)]/50"
+                    className="pl-9 bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                   Currency
                 </Label>
                 <Select value={configCurrency} onValueChange={(v) => setConfigCurrency(v as Currency)}>
-                  <SelectTrigger className="bg-card border-input focus:border-[var(--gold)]/50">
+                  <SelectTrigger className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-[#0e1117] border-white/15 text-white">
                     {CURRENCY_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -610,11 +622,11 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-border flex items-center justify-end gap-3">
+            <div className="p-6 sm:p-7 border-t border-white/10 flex items-center justify-end gap-3">
               <Button
                 variant="ghost"
                 onClick={() => setView('search')}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-white/60 hover:text-white rounded-xl"
               >
                 Cancel
               </Button>
@@ -622,8 +634,8 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                 onClick={handleConfirmAdd}
                 disabled={isAdding}
                 className={cn(
-                  'gap-2 rounded-lg font-semibold px-6',
-                  'bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground',
+                  'gap-2 rounded-xl font-heading font-black text-xs uppercase tracking-wider px-6 py-2.5',
+                  'bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-black',
                   'shadow-gold hover:shadow-gold-lg',
                   'transition-all duration-200 hover:scale-105'
                 )}
@@ -639,18 +651,23 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
           </div>
         ) : (
           /* Create Custom Player Step */
-          <div className="flex flex-col h-full max-h-[90vh]">
+          <div className="flex flex-col h-full max-h-[88vh]">
             {/* Header */}
-            <DialogHeader className="p-6 pb-4 border-b border-border">
+            <DialogHeader className="p-6 sm:p-7 pb-4 border-b border-white/10">
               <div className="flex items-start justify-between">
-                <DialogTitle className="text-xl font-heading font-bold text-foreground">
-                  Create Custom Player
-                </DialogTitle>
+                <div>
+                  <DialogTitle className="text-xl sm:text-2xl font-heading font-black text-white tracking-tight">
+                    Create Custom Player
+                  </DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs sm:text-sm mt-1">
+                    Manually add any player or legend to your tournament pool
+                  </DialogDescription>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleBackToSearch}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="h-9 w-9 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -658,15 +675,15 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </DialogHeader>
 
             {/* Creation Form */}
-            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 py-6 space-y-6 overscroll-contain">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-6 sm:px-7 py-6 space-y-6 overscroll-contain scrollbar-thin">
               {/* Photo Upload */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                   Player Photo
                 </Label>
                 <div className="relative">
                   <div className="flex items-center justify-center">
-                    <div className="relative w-32 h-32 rounded-xl overflow-hidden bg-muted border border-border">
+                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-black/60 border border-white/10 shadow-inner">
                       {createForm.photoPreview ? (
                         <img
                           src={createForm.photoPreview}
@@ -674,7 +691,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50">
+                        <div className="w-full h-full flex flex-col items-center justify-center text-white/30">
                           <ImageIcon className="h-8 w-8 mb-2" />
                           <span className="text-xs">No photo</span>
                         </div>
@@ -692,7 +709,7 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                     <Button
                       variant="outline"
                       onClick={() => document.getElementById('photo-upload')?.click()}
-                      className="gap-2"
+                      className="gap-2 rounded-xl border-white/20 text-white hover:bg-white/10"
                     >
                       <ImageIcon className="h-4 w-4" />
                       Upload Photo
@@ -702,13 +719,13 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCreateFormChange('photo', null)}
-                        className="text-destructive hover:text-destructive"
+                        className="text-rose-400 hover:text-rose-300 rounded-xl"
                       >
                         Remove
                       </Button>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground/60 text-center mt-1">
+                  <p className="text-[11px] text-white/40 text-center mt-1">
                     JPG, PNG, or WEBP · Max 5MB
                   </p>
                 </div>
@@ -717,43 +734,43 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
               {/* Name Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
-                    Full Name <span className="text-destructive">*</span>
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
+                    Full Name <span className="text-rose-400">*</span>
                   </Label>
                   <Input
                     value={createForm.name}
                     onChange={(e) => handleCreateFormChange('name', e.target.value)}
                     placeholder="e.g., Lionel Messi"
-                    className="bg-card border-input focus:border-[var(--gold)]/50"
+                    className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                     First Name
                   </Label>
                   <Input
                     value={createForm.firstName}
                     onChange={(e) => handleCreateFormChange('firstName', e.target.value)}
                     placeholder="e.g., Lionel"
-                    className="bg-card border-input focus:border-[var(--gold)]/50"
+                    className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                     Last Name
                   </Label>
                   <Input
                     value={createForm.lastName}
                     onChange={(e) => handleCreateFormChange('lastName', e.target.value)}
                     placeholder="e.g., Messi"
-                    className="bg-card border-input focus:border-[var(--gold)]/50"
+                    className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   />
                 </div>
               </div>
 
               {/* Nationality */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                   Nationality
                 </Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -761,14 +778,14 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                     value={createForm.nationality}
                     onChange={(e) => handleCreateFormChange('nationality', e.target.value)}
                     placeholder="e.g., Argentina"
-                    className="bg-card border-input focus:border-[var(--gold)]/50"
+                    className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   />
                   <Input
                     value={createForm.nationalityCode}
                     onChange={(e) => handleCreateFormChange('nationalityCode', e.target.value.toUpperCase())}
                     placeholder="ISO Code (e.g., ARG)"
                     maxLength={2}
-                    className="bg-card border-input focus:border-[var(--gold)]/50 text-uppercase"
+                    className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50 text-uppercase"
                   />
                 </div>
               </div>
@@ -776,14 +793,14 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
               {/* Position & Role */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
-                    Position <span className="text-destructive">*</span>
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
+                    Position <span className="text-rose-400">*</span>
                   </Label>
                   <Select value={createForm.position} onValueChange={(v) => handleCreateFormChange('position', v as PlayerPosition)}>
-                    <SelectTrigger className="bg-card border-input focus:border-[var(--gold)]/50">
+                    <SelectTrigger className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50">
                       <SelectValue placeholder="Select position" />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover border-border">
+                    <SelectContent className="bg-[#0e1117] border-white/15 text-white">
                       <SelectItem value="GK">GK - Goalkeeper</SelectItem>
                       <SelectItem value="CB">CB - Centre Back</SelectItem>
                       <SelectItem value="LB">LB - Left Back</SelectItem>
@@ -800,14 +817,14 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
-                    Auction Role <span className="text-destructive">*</span>
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
+                    Auction Role <span className="text-rose-400">*</span>
                   </Label>
                   <Select value={createForm.role} onValueChange={(v) => handleCreateFormChange('role', v as PlayerRole)}>
-                    <SelectTrigger className="bg-card border-input focus:border-[var(--gold)]/50">
+                    <SelectTrigger className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover border-border">
+                    <SelectContent className="bg-[#0e1117] border-white/15 text-white">
                       {ROLE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
@@ -820,14 +837,14 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
 
               {/* Date of Birth */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                   Date of Birth
                 </Label>
                 <Input
                   type="date"
                   value={createForm.dateOfBirth}
                   onChange={(e) => handleCreateFormChange('dateOfBirth', e.target.value)}
-                  className="bg-card border-input focus:border-[var(--gold)]/50"
+                  className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   max={new Date().toISOString().split('T')[0]}
                 />
               </div>
@@ -835,39 +852,39 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
               {/* Team & League */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
-                    Club <span className="text-destructive">*</span>
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
+                    Club <span className="text-rose-400">*</span>
                   </Label>
                   <Input
                     value={createForm.team}
                     onChange={(e) => handleCreateFormChange('team', e.target.value)}
                     placeholder="e.g., Paris Saint-Germain"
-                    className="bg-card border-input focus:border-[var(--gold)]/50"
+                    className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                     League
                   </Label>
                   <Input
                     value={createForm.league}
                     onChange={(e) => handleCreateFormChange('league', e.target.value)}
                     placeholder="e.g., Ligue 1"
-                    className="bg-card border-input focus:border-[var(--gold)]/50"
+                    className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50"
                   />
                 </div>
               </div>
 
               {/* Category */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                   Category
                 </Label>
                 <Select value={createForm.category} onValueChange={(v) => handleCreateFormChange('category', v as PlayerCategory)}>
-                  <SelectTrigger className="bg-card border-input focus:border-[var(--gold)]/50">
+                  <SelectTrigger className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-[#0e1117] border-white/15 text-white">
                     {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                       <SelectItem key={key} value={key as PlayerCategory} className="flex items-center gap-2">
                         <span
@@ -884,11 +901,11 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
               {/* Base Price & Currency */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
-                    Base Price <span className="text-destructive">*</span>
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
+                    Base Price <span className="text-rose-400">*</span>
                   </Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 font-semibold">
                       {CURRENCY_SYMBOLS[createForm.currency]}
                     </span>
                     <Input
@@ -908,20 +925,20 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                         e.target.value = e.target.value.replace(/[,\.]/g, '');
                       }}
                       placeholder="e.g., 1,50,00,000"
-                      className="pl-8 bg-card border-input focus:border-[var(--gold)]/50 text-right font-mono tabular-nums"
+                      className="pl-9 bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50 text-right font-mono tabular-nums"
                       inputMode="numeric"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                  <Label className="text-xs font-mono font-bold text-white/80 uppercase tracking-wider">
                     Currency
                   </Label>
                   <Select value={createForm.currency} onValueChange={(v) => handleCreateFormChange('currency', v as Currency)}>
-                    <SelectTrigger className="bg-card border-input focus:border-[var(--gold)]/50">
+                    <SelectTrigger className="bg-white/[0.04] border-white/10 text-white rounded-xl focus:border-[var(--gold)]/50">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover border-border">
+                    <SelectContent className="bg-[#0e1117] border-white/15 text-white">
                       {CURRENCY_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
@@ -934,11 +951,11 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-border flex items-center justify-end gap-3">
+            <div className="p-6 sm:p-7 border-t border-white/10 flex items-center justify-end gap-3">
               <Button
                 variant="ghost"
                 onClick={handleBackToSearch}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-white/60 hover:text-white rounded-xl"
               >
                 Cancel
               </Button>
@@ -946,8 +963,8 @@ export function AddPlayerModal({ open, onOpenChange }: AddPlayerModalProps) {
                 onClick={handleCreatePlayer}
                 disabled={isCreating}
                 className={cn(
-                  'gap-2 rounded-lg font-semibold px-6',
-                  'bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-primary-foreground',
+                  'gap-2 rounded-xl font-heading font-black text-xs uppercase tracking-wider px-6 py-2.5',
+                  'bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-black',
                   'shadow-gold hover:shadow-gold-lg',
                   'transition-all duration-200 hover:scale-105'
                 )}

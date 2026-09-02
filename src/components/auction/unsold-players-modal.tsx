@@ -344,7 +344,7 @@ export function UnsoldPlayersModal({ open, onOpenChange }: UnsoldPlayersModalPro
                               <span className="text-foreground/80 font-medium">{basePlayer.team}</span>
                               <span>•</span>
                               <span className="font-mono font-bold text-[var(--gold)]">
-                                Base: {formatCurrency(ap.basePrice, ap.currency || settings.currency)}
+                                Val: {formatCurrency(ap.basePrice || 0, ap.currency || settings.currency)}
                               </span>
                             </div>
                           </div>

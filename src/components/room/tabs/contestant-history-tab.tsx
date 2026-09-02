@@ -72,7 +72,7 @@ export function ContestantHistoryTab() {
                 ap.id.startsWith('auction-mystery-')
               );
               const isUnsold = ap.status === 'UNSOLD';
-              const price = ap.soldPrice ?? ap.basePrice;
+              const price = isUnsold ? 0 : (ap.soldPrice ?? ap.basePrice);
               const categoryColor = CATEGORY_COLORS[ap.player.category] || '#eab308';
 
               return (

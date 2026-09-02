@@ -543,7 +543,8 @@ export const useAuctionStore = create<AuctionState>()(
               ? {
                   ...ap,
                   teamId: null,
-                  soldPrice: null,
+                  basePrice: 0,
+                  soldPrice: 0,
                   soldAt: null,
                   status: 'UNSOLD' as PlayerStatus,
                 }
