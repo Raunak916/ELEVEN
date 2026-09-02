@@ -19,6 +19,7 @@ const PAGE_NAMES: Record<string, string> = {
   '/auction/wheel': 'Wheel of Fortune',
   '/auction/cards': 'Cards Deck',
   '/auction/vibe': 'Vibe Arena',
+  '/auction/lineups': 'Tactical Lineups',
   '/auction/points-table': 'Points Table',
   '/auction/history': 'History',
   '/auction/settings': 'Settings',

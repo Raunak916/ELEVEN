@@ -243,4 +243,27 @@ export function getRoleFromPosition(position: PlayerPosition): PlayerRole {
   return POSITION_TO_ROLE[position];
 }
 
+export interface LineupSlot {
+  positionId: string;
+  label: string;
+  role: PlayerRole;
+  x: number; // percentage from left (0 to 100)
+  y: number; // percentage from top (0 to 100)
+}
+
+export interface Formation {
+  id: string;
+  name: string;
+  category: 'Balanced' | 'Attacking' | 'Defensive';
+  description: string;
+  slots: LineupSlot[];
+}
+
+export interface TeamLineup {
+  teamId: string;
+  formationId: string;
+  assignments: Record<string, string | null>; // { [positionId]: auctionPlayerId | null }
+  updatedAt?: string;
+}
+
 export * from './room-types';

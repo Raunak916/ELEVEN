@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { AuctionPlayer, Player, PlayerRole, Currency, PlayerStatus, Team, AuctionSettings, AuctionSnapshot } from './types';
+import { AuctionPlayer, Player, PlayerRole, Currency, PlayerStatus, Team, AuctionSettings, AuctionSnapshot, TeamLineup } from './types';
+import { DEFAULT_FORMATION_ID, getFormation } from './formations';
 import { v4 as uuidv4 } from 'uuid';
 
 const AUCTION_ID = 'main-auction';
@@ -13,11 +14,19 @@ interface AuctionState {
   teams: Team[];
   settings: AuctionSettings;
   history: AuctionSnapshot[];
+  lineups: Record<string, TeamLineup>; // teamId -> TeamLineup
 
   // UI state
   isDrawing: boolean;
   drawnPlayer: AuctionPlayer | null;
   drawPhase: 'idle' | 'cycling' | 'revealing' | 'complete';
+
+  // Lineup actions
+  setTeamFormation: (teamId: string, formationId: string) => void;
+  assignPlayerToSlot: (teamId: string, positionId: string, auctionPlayerId: string | null) => void;
+  autoAssignLineup: (teamId: string, formationId?: string) => void;
+  clearTeamLineup: (teamId: string) => void;
+  getTeamLineup: (teamId: string) => TeamLineup;
 
   // Actions
   addPlayer: (player: Player, role: PlayerRole, basePrice: number, currency: Currency) => void;
@@ -136,9 +145,141 @@ export const useAuctionStore = create<AuctionState>()(
       teams: [],
       settings: DEFAULT_SETTINGS,
       history: [],
+      lineups: {},
       isDrawing: false,
       drawnPlayer: null,
       drawPhase: 'idle',
+
+      setTeamFormation: (teamId: string, formationId: string) => {
+        set((state) => {
+          const current = state.lineups[teamId] || {
+            teamId,
+            formationId: DEFAULT_FORMATION_ID,
+            assignments: {},
+          };
+          return {
+            lineups: {
+              ...state.lineups,
+              [teamId]: {
+                ...current,
+                formationId,
+                updatedAt: new Date().toISOString(),
+              },
+            },
+          };
+        });
+      },
+
+      assignPlayerToSlot: (teamId: string, positionId: string, auctionPlayerId: string | null) => {
+        set((state) => {
+          const current = state.lineups[teamId] || {
+            teamId,
+            formationId: DEFAULT_FORMATION_ID,
+            assignments: {},
+          };
+
+          const newAssignments = { ...current.assignments };
+
+          // If auctionPlayerId is provided, remove this player from any other slot first (prevent duplicates)
+          if (auctionPlayerId) {
+            Object.keys(newAssignments).forEach((key) => {
+              if (newAssignments[key] === auctionPlayerId) {
+                newAssignments[key] = null;
+              }
+            });
+          }
+
+          newAssignments[positionId] = auctionPlayerId;
+
+          return {
+            lineups: {
+              ...state.lineups,
+              [teamId]: {
+                ...current,
+                assignments: newAssignments,
+                updatedAt: new Date().toISOString(),
+              },
+            },
+          };
+        });
+      },
+
+      autoAssignLineup: (teamId: string, customFormationId?: string) => {
+        set((state) => {
+          const current = state.lineups[teamId] || {
+            teamId,
+            formationId: customFormationId || DEFAULT_FORMATION_ID,
+            assignments: {},
+          };
+
+          const activeFormationId = customFormationId || current.formationId || DEFAULT_FORMATION_ID;
+          const formation = getFormation(activeFormationId);
+          const teamPlayers = state.auctionPlayers.filter((ap) => ap.teamId === teamId);
+
+          const newAssignments: Record<string, string | null> = {};
+          const unassignedPlayers = [...teamPlayers];
+
+          // 1. First pass: Match exact role (GK, Defender, Midfielder, Forward)
+          for (const slot of formation.slots) {
+            const matchIndex = unassignedPlayers.findIndex((p) => p.role === slot.role);
+            if (matchIndex !== -1) {
+              const matchedPlayer = unassignedPlayers[matchIndex];
+              newAssignments[slot.positionId] = matchedPlayer.id;
+              unassignedPlayers.splice(matchIndex, 1);
+            }
+          }
+
+          // 2. Second pass: Fill remaining empty slots with any unassigned players
+          for (const slot of formation.slots) {
+            if (!newAssignments[slot.positionId] && unassignedPlayers.length > 0) {
+              const nextPlayer = unassignedPlayers.shift()!;
+              newAssignments[slot.positionId] = nextPlayer.id;
+            }
+          }
+
+          return {
+            lineups: {
+              ...state.lineups,
+              [teamId]: {
+                teamId,
+                formationId: activeFormationId,
+                assignments: newAssignments,
+                updatedAt: new Date().toISOString(),
+              },
+            },
+          };
+        });
+      },
+
+      clearTeamLineup: (teamId: string) => {
+        set((state) => {
+          const current = state.lineups[teamId] || {
+            teamId,
+            formationId: DEFAULT_FORMATION_ID,
+            assignments: {},
+          };
+          return {
+            lineups: {
+              ...state.lineups,
+              [teamId]: {
+                ...current,
+                assignments: {},
+                updatedAt: new Date().toISOString(),
+              },
+            },
+          };
+        });
+      },
+
+      getTeamLineup: (teamId: string) => {
+        const lineup = get().lineups[teamId];
+        if (lineup) return lineup;
+        return {
+          teamId,
+          formationId: DEFAULT_FORMATION_ID,
+          assignments: {},
+        };
+      },
 
       addPlayer: (player, role, basePrice, currency) => {
         const existing = get().auctionPlayers.find(ap => ap.playerId === player.id);
@@ -677,6 +818,7 @@ export const useAuctionStore = create<AuctionState>()(
         teams: state.teams,
         settings: state.settings,
         history: state.history,
+        lineups: state.lineups,
         drawnPlayer: state.drawnPlayer,
         drawPhase: state.drawPhase,
       }),

@@ -15,9 +15,10 @@ const NAV_ITEMS = [
   { href: '/auction/wheel', number: '04', label: 'WHEEL' },
   { href: '/auction/cards', number: '05', label: 'CARDS' },
   { href: '/auction/vibe', number: '06', label: 'VIBE' },
-  { href: '/auction/points-table', number: '07', label: 'POINTS TABLE' },
-  { href: '/auction/history', number: '08', label: 'HISTORY' },
-  { href: '/auction/settings', number: '09', label: 'SETTINGS' },
+  { href: '/auction/lineups', number: '07', label: 'LINEUPS' },
+  { href: '/auction/points-table', number: '08', label: 'POINTS TABLE' },
+  { href: '/auction/history', number: '09', label: 'HISTORY' },
+  { href: '/auction/settings', number: '10', label: 'SETTINGS' },
 ] as const;
 
 interface SidebarProps {
@@ -67,7 +68,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       <nav className="flex-1 px-3 lg:px-4 py-4 lg:py-6 overflow-y-auto scrollbar-thin">
         <ul className="space-y-1" role="navigation" aria-label="Main navigation">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href !== '/auction' && pathname.startsWith(item.href));
             return (
               <li key={item.href}>
                 <Link
