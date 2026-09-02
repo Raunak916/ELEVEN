@@ -259,10 +259,31 @@ export interface Formation {
   slots: LineupSlot[];
 }
 
+export interface AiTeamRating {
+  overallRating: number;
+  verdictTitle: string;
+  styleArchetype: string;
+  subRatings: {
+    defense: number;
+    midfield: number;
+    attack: number;
+    depth: number;
+  };
+  verdictSummary: string;
+  strengths: string[];
+  weaknesses: string[];
+  keyPlayer: {
+    name: string;
+    reason: string;
+  };
+  generatedAt: string;
+}
+
 export interface TeamLineup {
   teamId: string;
   formationId: string;
   assignments: Record<string, string | null>; // { [positionId]: auctionPlayerId | null }
+  aiRating?: AiTeamRating;
   updatedAt?: string;
 }
 

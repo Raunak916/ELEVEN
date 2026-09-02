@@ -57,6 +57,7 @@ export default function LineupsPage() {
         assignedCount,
         isComplete,
         starterPhotos,
+        aiRating: teamLineup.aiRating,
       };
     });
   }, [teams, auctionPlayers, lineups]);
@@ -105,7 +106,7 @@ export default function LineupsPage() {
         ) : (
           /* Participating Teams Lineups Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teamCardsData.map(({ team, teamPlayers, formation, assignedCount, isComplete, starterPhotos }, index) => {
+            {teamCardsData.map(({ team, teamPlayers, formation, assignedCount, isComplete, starterPhotos, aiRating }, index) => {
               return (
                 <motion.div
                   key={team.id}
@@ -126,9 +127,17 @@ export default function LineupsPage() {
                     <div>
                       <div className="flex items-start justify-between gap-3 mb-4">
                         <div>
-                          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--gold)]">
-                            TEAM #{index + 1}
-                          </span>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--gold)]">
+                              TEAM #{index + 1}
+                            </span>
+                            {aiRating && (
+                              <span className="flex items-center gap-1 text-[10px] font-mono font-black px-2 py-0.2 rounded-full bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/30">
+                                <Sparkles className="w-2.5 h-2.5" />
+                                ★ {aiRating.overallRating}/10
+                              </span>
+                            )}
+                          </div>
                           <h3 className="font-heading font-black text-xl text-white tracking-tight group-hover:text-[var(--gold)] transition-colors truncate">
                             {team.name}
                           </h3>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { AuctionPlayer, Player, PlayerRole, Currency, PlayerStatus, Team, AuctionSettings, AuctionSnapshot, TeamLineup } from './types';
+import { AuctionPlayer, Player, PlayerRole, Currency, PlayerStatus, Team, AuctionSettings, AuctionSnapshot, TeamLineup, AiTeamRating } from './types';
 import { DEFAULT_FORMATION_ID, getFormation } from './formations';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,6 +27,7 @@ interface AuctionState {
   autoAssignLineup: (teamId: string, formationId?: string) => void;
   clearTeamLineup: (teamId: string) => void;
   getTeamLineup: (teamId: string) => TeamLineup;
+  setTeamAiRating: (teamId: string, rating: AiTeamRating) => void;
 
   // Actions
   addPlayer: (player: Player, role: PlayerRole, basePrice: number, currency: Currency) => void;
@@ -279,6 +280,26 @@ export const useAuctionStore = create<AuctionState>()(
           formationId: DEFAULT_FORMATION_ID,
           assignments: {},
         };
+      },
+
+      setTeamAiRating: (teamId: string, rating: AiTeamRating) => {
+        set((state) => {
+          const current = state.lineups[teamId] || {
+            teamId,
+            formationId: DEFAULT_FORMATION_ID,
+            assignments: {},
+          };
+          return {
+            lineups: {
+              ...state.lineups,
+              [teamId]: {
+                ...current,
+                aiRating: rating,
+                updatedAt: new Date().toISOString(),
+              },
+            },
+          };
+        });
       },
 
       addPlayer: (player, role, basePrice, currency) => {

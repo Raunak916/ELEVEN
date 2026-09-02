@@ -29,9 +29,10 @@ import {
 import { PitchBoard } from '@/components/lineups/pitch-board';
 import { RosterSidebar } from '@/components/lineups/roster-sidebar';
 import { PlayerPickerDialog } from '@/components/lineups/player-picker-dialog';
+import { AiTeamRatingModal } from '@/components/lineups/ai-team-rating-modal';
 import { FORMATIONS, DEFAULT_FORMATION_ID, getFormation } from '@/lib/formations';
 import { useAuctionStore } from '@/lib/auction-store';
-import { LineupSlot, AuctionPlayer, Team } from '@/lib/types';
+import { LineupSlot, AuctionPlayer, Team, AiTeamRating } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface LineupBuilderScreenProps {
@@ -49,6 +50,7 @@ export function LineupBuilderScreen({ team }: LineupBuilderScreenProps) {
     assignPlayerToSlot,
     autoAssignLineup,
     clearTeamLineup,
+    setTeamAiRating,
   } = useAuctionStore();
 
   // Get current team lineup state
@@ -79,6 +81,83 @@ export function LineupBuilderScreen({ team }: LineupBuilderScreenProps) {
 
   // Export Loading State
   const [isExporting, setIsExporting] = useState(false);
+
+  // AI Rating Modal & Loading State
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [isRatingLoading, setIsRatingLoading] = useState(false);
+
+  // Trigger AI Rating
+  const handleRateTeam = async (forceRefresh = false) => {
+    // If rating exists and not forcing refresh, just open modal
+    if (teamLineup.aiRating && !forceRefresh) {
+      setRatingModalOpen(true);
+      return;
+    }
+
+    // Build starters list
+    const startersList = formation.slots
+      .map((slot) => {
+        const pId = teamLineup.assignments[slot.positionId];
+        const player = pId ? teamPlayers.find((p) => p.id === pId) : null;
+        if (!player) return null;
+        return {
+          slot: slot.label,
+          role: player.role,
+          name: player.player.name,
+          team: player.player.team,
+          nationality: player.player.nationality,
+          category: player.player.category,
+        };
+      })
+      .filter(Boolean);
+
+    if (startersList.length === 0) {
+      toast.error('Please assign players to your starting XI before rating.');
+      return;
+    }
+
+    const assignedIds = new Set(Object.values(teamLineup.assignments).filter(Boolean));
+    const benchList = teamPlayers
+      .filter((p) => !assignedIds.has(p.id))
+      .map((p) => ({
+        role: p.role,
+        name: p.player.name,
+        team: p.player.team,
+        nationality: p.player.nationality,
+      }));
+
+    setRatingModalOpen(true);
+    setIsRatingLoading(true);
+
+    try {
+      const res = await fetch('/api/ai/rate-lineup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          teamId: team.id,
+          teamName: team.name,
+          owner: team.owner,
+          formation: formation.name,
+          starters: startersList,
+          bench: benchList,
+          totalSquad: teamPlayers.length,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.rating) {
+        setTeamAiRating(team.id, data.rating);
+        toast.success(`AI Scout Score: ${data.rating.overallRating}/10`);
+      } else {
+        toast.error(data.error || 'Failed to analyze lineup');
+      }
+    } catch (err) {
+      console.error('Rating failed:', err);
+      toast.error('Failed to communicate with AI tactical service');
+    } finally {
+      setIsRatingLoading(false);
+    }
+  };
 
   // Handle Slot Click (opens modal picker)
   const handleSlotClick = useCallback(
@@ -199,6 +278,17 @@ export function LineupBuilderScreen({ team }: LineupBuilderScreenProps) {
               <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/30">
                 {assignedCount}/11 Starters
               </span>
+              {teamLineup.aiRating && (
+                <button
+                  type="button"
+                  onClick={() => handleRateTeam(false)}
+                  className="flex items-center gap-1 text-xs font-mono font-black px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors"
+                  title="View AI Tactical Review"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>★ {teamLineup.aiRating.overallRating}/10</span>
+                </button>
+              )}
             </div>
             <p className="text-xs text-white/50 font-mono mt-0.5">
               Owner: <span className="text-white/80 font-bold">{team.owner}</span> · {teamPlayers.length} squad players
@@ -236,6 +326,18 @@ export function LineupBuilderScreen({ team }: LineupBuilderScreenProps) {
             </Select>
           </div>
 
+          {/* AI Rate Lineup Button */}
+          <Button
+            type="button"
+            onClick={() => handleRateTeam(false)}
+            disabled={assignedCount === 0}
+            className="h-10 px-3.5 rounded-xl gap-1.5 font-heading font-bold text-xs bg-gradient-to-r from-amber-500/20 via-[var(--gold)]/20 to-amber-500/20 text-[var(--gold)] border border-[var(--gold)]/40 hover:bg-[var(--gold)]/30 shadow-gold"
+            title="Evaluate team tactics and get a rating out of 10 from Gemini AI"
+          >
+            <Sparkles className="w-4 h-4 text-[var(--gold)]" />
+            <span>{teamLineup.aiRating ? `AI Scout (${teamLineup.aiRating.overallRating})` : 'AI Rate XI'}</span>
+          </Button>
+
           {/* Auto-Fill Button */}
           <Button
             type="button"
@@ -243,10 +345,9 @@ export function LineupBuilderScreen({ team }: LineupBuilderScreenProps) {
             size="sm"
             onClick={() => autoAssignLineup(team.id)}
             disabled={teamPlayers.length === 0}
-            className="h-10 px-3.5 rounded-xl gap-1.5 border-[var(--gold)]/30 text-[var(--gold)] hover:bg-[var(--gold)]/10 font-heading font-bold text-xs"
+            className="h-10 px-3.5 rounded-xl gap-1.5 border-white/15 text-white/80 hover:text-white hover:bg-white/10 font-heading font-bold text-xs"
             title="Automatically assign best squad players to slots"
           >
-            <Sparkles className="w-4 h-4 text-[var(--gold)]" />
             <span className="hidden sm:inline">Auto-Fill</span>
           </Button>
 
@@ -314,6 +415,17 @@ export function LineupBuilderScreen({ team }: LineupBuilderScreenProps) {
         teamPlayers={teamPlayers}
         assignments={teamLineup.assignments}
         onSelectPlayer={handleSelectFromPicker}
+      />
+
+      {/* AI Team Rating Scout Modal */}
+      <AiTeamRatingModal
+        open={ratingModalOpen}
+        onOpenChange={setRatingModalOpen}
+        team={team}
+        formationName={formation.name}
+        rating={teamLineup.aiRating || null}
+        isLoading={isRatingLoading}
+        onReAnalyze={() => handleRateTeam(true)}
       />
     </div>
   );
