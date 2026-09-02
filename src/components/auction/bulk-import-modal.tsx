@@ -180,36 +180,83 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
   }, []);
 
   const parseCSV = useCallback((content: string): ImportRowInput[] => {
-    const lines = content.trim().split(/\r?\n/).filter((l) => l.trim().length > 0);
+    // 1. Strip UTF-8 BOM
+    const clean = content.replace(/^\uFEFF/, '').trim();
+    if (!clean) return [];
+
+    const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
     if (lines.length < 2) return [];
 
-    const headers = lines[0]
-      .split(',')
-      .map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
+    // 2. Delimiter auto-detection (comma, semicolon, tab)
+    const firstLine = lines[0];
+    let delimiter = ',';
+    const commaCount = (firstLine.match(/,/g) || []).length;
+    const semiCount = (firstLine.match(/;/g) || []).length;
+    const tabCount = (firstLine.match(/\t/g) || []).length;
+    if (semiCount > commaCount && semiCount > tabCount) delimiter = ';';
+    else if (tabCount > commaCount && tabCount > semiCount) delimiter = '\t';
+
+    const parseLine = (line: string): string[] => {
+      const result: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"' || char === "'") {
+          inQuotes = !inQuotes;
+        } else if (char === delimiter && !inQuotes) {
+          result.push(current.trim().replace(/^["']|["']$/g, ''));
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim().replace(/^["']|["']$/g, ''));
+      return result;
+    };
+
+    const rawHeaders = parseLine(lines[0]);
+    const headers = rawHeaders.map((h) =>
+      h.toLowerCase().replace(/[^a-z0-9]/g, '')
+    );
     const rows: ImportRowInput[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i]
-        .split(',')
-        .map((v) => v.trim().replace(/^["']|["']$/g, '').replace(/\r/g, ''));
+      const values = parseLine(lines[i]);
       const row: Record<string, string> = {};
 
       headers.forEach((header, idx) => {
         row[header] = values[idx] || '';
       });
 
-      const name = row.name || row.playername || row['player name'] || row.fullname || '';
-      const club = row.club || row.team || row.currentteam || row['current team'] || '';
-      const basePrice = row.baseprice || row['base price'] || row.price || '';
+      const name =
+        row.name ||
+        row.playername ||
+        row.player ||
+        row.fullname ||
+        row.label ||
+        '';
+      const club =
+        row.club ||
+        row.team ||
+        row.currentteam ||
+        row.currentclub ||
+        '';
+      const basePrice =
+        row.baseprice ||
+        row.price ||
+        row.cost ||
+        row.reserveprice ||
+        '';
       const currency = row.currency || '';
-      const role = row.role || '';
-      const playerId = row.playerid || row['player id'] || row.id || '';
+      const role = row.role || row.position || '';
+      const playerId = row.playerid || row.id || '';
 
       if (name) {
         rows.push({
           name,
           club: club || undefined,
-          basePrice: basePrice ? parseInt(basePrice.replace(/[,\.]/g, ''), 10) : undefined,
+          basePrice: basePrice ? parseInt(basePrice.replace(/[^\d]/g, ''), 10) : undefined,
           currency: (currency?.toUpperCase() as Currency) || undefined,
           role: (role as PlayerRole) || undefined,
           playerId: playerId || undefined,
@@ -243,6 +290,7 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
   const handleProcess = useCallback(async () => {
     if (!file) {
       toast.error('Please select a file first');
+      setIsProcessing(false);
       return;
     }
 
@@ -253,16 +301,14 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
       const ext = file.name.split('.').pop()?.toLowerCase();
       let rows: ImportRowInput[] = [];
 
-      if (ext === 'csv') {
-        rows = parseCSV(text);
-      } else if (ext === 'json') {
+      if (ext === 'json') {
         rows = parseJSON(text);
       } else {
         rows = parseCSV(text);
       }
 
-      if (rows.length === 0) {
-        toast.error('No valid rows found in file. Please check column headers (name, club, etc.)');
+      if (!rows || rows.length === 0) {
+        toast.error('No valid rows found in file. Please check column headers (e.g. name, club)');
         setIsProcessing(false);
         return;
       }
@@ -279,23 +325,28 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
         body: JSON.stringify(rows),
       });
 
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server returned ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to process import');
+      if (!data || !Array.isArray(data.results)) {
+        throw new Error('Invalid match response from server');
       }
 
       const mappedResults: ImportResult[] = data.results.map((r: any) => ({
         inputRow: r.inputRow,
-        matches: r.matches.map((m: any) => ({
+        matches: (r.matches || []).map((m: any) => ({
           ...m,
           matchScore: 0,
-          matchReason: r.reason,
+          matchReason: r.reason || '',
         })),
-        bestMatch: r.bestMatch ? { ...r.bestMatch, matchScore: 0, matchReason: r.reason } : null,
-        confidence: r.confidence,
-        reason: r.reason,
-        selectedMatch: r.bestMatch ? { ...r.bestMatch, matchScore: 0, matchReason: r.reason } : null,
+        bestMatch: r.bestMatch ? { ...r.bestMatch, matchScore: 0, matchReason: r.reason || '' } : null,
+        confidence: r.confidence || 'none',
+        reason: r.reason || '',
+        selectedMatch: r.bestMatch ? { ...r.bestMatch, matchScore: 0, matchReason: r.reason || '' } : null,
         status:
           r.bestMatch && (r.confidence === 'high' || r.confidence === 'medium')
             ? ('accepted' as const)
@@ -448,11 +499,17 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
 
   const handleReset = useCallback(() => {
     setFile(null);
+    setIsProcessing(false);
     setResults([]);
     setAddedCount(0);
     setStep('upload');
     setShowAllRows(true);
     setPopConfig(null);
+    setIsAddingSingle(false);
+    setImportProgress({ current: 0, total: 0, name: '' });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }, []);
 
   const getFilteredResults = () => {
@@ -468,7 +525,10 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(val) => {
+        if (!val) handleReset();
+        onOpenChange(val);
+      }}>
         <DialogContent
           showCloseButton={false}
           className={cn(
@@ -496,7 +556,10 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
                   </div>
                   <button
                     type="button"
-                    onClick={() => onOpenChange(false)}
+                    onClick={() => {
+                      handleReset();
+                      onOpenChange(false);
+                    }}
                     className="rounded-xl p-2 text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
                   >
                     <X className="w-5 h-5" />
@@ -649,7 +712,10 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => {
+                    handleReset();
+                    onOpenChange(false);
+                  }}
                   className="h-11 px-5 text-xs rounded-xl"
                 >
                   Cancel
@@ -698,13 +764,27 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
                       {results.filter((r) => r.confidence === 'none').length} unmatched
                     </DialogDescription>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setStep('upload')}
-                    className="rounded-xl p-2 text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setStep('upload')}
+                      className="text-xs font-mono rounded-xl h-9 px-3 border-white/10 bg-white/5"
+                    >
+                      Back
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleReset();
+                        onOpenChange(false);
+                      }}
+                      className="rounded-xl p-2 text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </DialogHeader>
 
