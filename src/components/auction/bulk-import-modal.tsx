@@ -151,10 +151,18 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
   const handleFileSelect = useCallback((selectedFile: File | null) => {
     if (selectedFile) {
       const ext = selectedFile.name.split('.').pop()?.toLowerCase();
-      if (ext === 'csv' || ext === 'json') {
+      if (
+        ext === 'csv' ||
+        ext === 'json' ||
+        ext === 'txt' ||
+        selectedFile.type.includes('csv') ||
+        selectedFile.type.includes('json') ||
+        selectedFile.type.includes('text')
+      ) {
         setFile(selectedFile);
+        setIsProcessing(false);
       } else {
-        toast.error('Please select a CSV or JSON file');
+        toast.error('Please select a CSV, JSON, or TXT file');
       }
     }
   }, []);
@@ -185,7 +193,7 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
     if (!clean) return [];
 
     const lines = clean.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
-    if (lines.length < 2) return [];
+    if (lines.length === 0) return [];
 
     // 2. Delimiter auto-detection (comma, semicolon, tab)
     const firstLine = lines[0];
@@ -219,7 +227,26 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
     const headers = rawHeaders.map((h) =>
       h.toLowerCase().replace(/[^a-z0-9]/g, '')
     );
+
+    const hasKnownHeader = headers.some((h) =>
+      ['name', 'player', 'playername', 'fullname', 'club', 'team', 'price', 'baseprice', 'role'].includes(h)
+    );
+
     const rows: ImportRowInput[] = [];
+
+    if (!hasKnownHeader || lines.length === 1) {
+      // Treat each line as a player name/row
+      for (let i = 0; i < lines.length; i++) {
+        const parts = parseLine(lines[i]);
+        const name = parts[0] || '';
+        const club = parts[1] || undefined;
+        const basePrice = parts[2] ? parseInt(parts[2].replace(/[^\d]/g, ''), 10) : undefined;
+        if (name && name.length > 1) {
+          rows.push({ name, club, basePrice });
+        }
+      }
+      return rows;
+    }
 
     for (let i = 1; i < lines.length; i++) {
       const values = parseLine(lines[i]);
@@ -582,7 +609,10 @@ export function BulkImportModal({ open, onOpenChange }: BulkImportModalProps) {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".csv,.json"
+                    accept=".csv,.json,.txt,text/csv,application/json,text/plain"
+                    onClick={(e) => {
+                      (e.target as HTMLInputElement).value = '';
+                    }}
                     onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
                     className="hidden"
                     id="bulk-import-file"
