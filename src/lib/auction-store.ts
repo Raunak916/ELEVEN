@@ -164,6 +164,7 @@ export const useAuctionStore = create<AuctionState>()(
               [teamId]: {
                 ...current,
                 formationId,
+                aiRating: undefined,
                 updatedAt: new Date().toISOString(),
               },
             },
@@ -198,6 +199,7 @@ export const useAuctionStore = create<AuctionState>()(
               [teamId]: {
                 ...current,
                 assignments: newAssignments,
+                aiRating: undefined,
                 updatedAt: new Date().toISOString(),
               },
             },
@@ -245,6 +247,7 @@ export const useAuctionStore = create<AuctionState>()(
                 teamId,
                 formationId: activeFormationId,
                 assignments: newAssignments,
+                aiRating: undefined,
                 updatedAt: new Date().toISOString(),
               },
             },
@@ -265,6 +268,7 @@ export const useAuctionStore = create<AuctionState>()(
               [teamId]: {
                 ...current,
                 assignments: {},
+                aiRating: undefined,
                 updatedAt: new Date().toISOString(),
               },
             },

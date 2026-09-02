@@ -88,8 +88,13 @@ export function LineupBuilderScreen({ team }: LineupBuilderScreenProps) {
 
   // Trigger AI Rating
   const handleRateTeam = async (forceRefresh = false) => {
-    // If rating exists and not forcing refresh, just open modal
-    if (teamLineup.aiRating && !forceRefresh) {
+    const isLegacyCachedRating =
+      teamLineup.aiRating?.overallRating === 8.5 ||
+      teamLineup.aiRating?.keyPlayer?.name?.toLowerCase().includes('simon') ||
+      teamLineup.aiRating?.keyPlayer?.name?.toLowerCase().includes('simón');
+
+    // If valid rating exists and not forcing refresh, open modal
+    if (teamLineup.aiRating && !isLegacyCachedRating && !forceRefresh) {
       setRatingModalOpen(true);
       return;
     }

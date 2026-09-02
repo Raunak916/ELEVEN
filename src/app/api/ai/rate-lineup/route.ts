@@ -62,8 +62,11 @@ function getSmartFallbackRating(
   let highestStar: { name: string; weight: number; reason: string } | null = null;
 
   starters.forEach((p) => {
-    const lowerName = p.name.toLowerCase();
-    let matchedWeight = 8.2; // default starter baseline
+    const lowerName = p.name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    let matchedWeight = 8.5; // default starter baseline
     let matchedReason = 'Essential structural starter providing tactical balance.';
 
     for (const [key, data] of Object.entries(NOTABLE_PLAYERS)) {
