@@ -1,0 +1,4076 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-09-03T16:23:51.042Z",
+  "projectName": "Eleven Football Auction",
+  "stats": {
+    "totalNodes": 132,
+    "totalEdges": 407,
+    "totalModules": 4
+  },
+  "modules": [
+    {
+      "name": "Tactical Lineup Engine",
+      "description": "Pitch visualization, 7 formations, slot drag & drop, squad roster, and retina PNG export.",
+      "entry": "src/app/auction/lineups/page.tsx",
+      "components": [
+        "src/app/auction/lineups/[teamId]/page.tsx",
+        "src/components/lineups/lineup-builder-screen.tsx",
+        "src/components/lineups/pitch-board.tsx",
+        "src/components/lineups/roster-sidebar.tsx",
+        "src/components/lineups/player-picker-dialog.tsx",
+        "src/components/lineups/ai-team-rating-modal.tsx",
+        "src/lib/formations.ts"
+      ]
+    },
+    {
+      "name": "Gemini AI Tactical Scouting Engine",
+      "description": "UEFA Pro calibrated squad review, 1-10 rating, sub-metrics, and key talisman detection with model fallback cascade.",
+      "entry": "src/app/api/ai/rate-lineup/route.ts",
+      "components": [
+        "src/components/lineups/ai-team-rating-modal.tsx",
+        "src/app/api/ai/hype/route.ts"
+      ]
+    },
+    {
+      "name": "Live Auction & Room Sync System",
+      "description": "Real-time room code synchronization, live bidding, draw deck, wheel of fortune, and Turso persistence.",
+      "entry": "src/app/auction/draw/page.tsx",
+      "components": [
+        "src/app/api/rooms/route.ts",
+        "src/app/api/rooms/sync/route.ts",
+        "src/app/api/rooms/draw/route.ts",
+        "src/app/api/rooms/complete/route.ts",
+        "src/lib/auction-store.ts",
+        "src/lib/turso.ts"
+      ]
+    },
+    {
+      "name": "Player Pool & Roster Management",
+      "description": "Player search, custom additions, CSV bulk-import with BOM & plain-text parsing, and points table tracking.",
+      "entry": "src/app/auction/pool/page.tsx",
+      "components": [
+        "src/components/auction/add-player-modal.tsx",
+        "src/components/auction/bulk-import-modal.tsx",
+        "src/components/auction/edit-player-modal.tsx",
+        "src/app/auction/points-table/page.tsx",
+        "src/app/api/players/search/route.ts",
+        "src/app/api/players/bulk-match/route.ts"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "src/app/about/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/about/page.tsx",
+      "lines": 12,
+      "exports": [
+        "metadata",
+        "AboutPage"
+      ],
+      "imports": [
+        "@/components/credits/star-wars-crawl"
+      ]
+    },
+    {
+      "id": "src/app/api/ai/hype/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/ai/hype/route.ts",
+      "lines": 93,
+      "exports": [],
+      "imports": [
+        "@/lib/turso"
+      ]
+    },
+    {
+      "id": "src/app/api/ai/rate-lineup/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/ai/rate-lineup/route.ts",
+      "lines": 314,
+      "exports": [],
+      "imports": [
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/app/api/music/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/music/route.ts",
+      "lines": 54,
+      "exports": [],
+      "imports": [
+        "@/lib/music-db"
+      ]
+    },
+    {
+      "id": "src/app/api/players/bulk-match/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/players/bulk-match/route.ts",
+      "lines": 360,
+      "exports": [],
+      "imports": [
+        "@/lib/football-player-service",
+        "@/lib/player-db",
+        "@/lib/turso",
+        "@/lib/types",
+        "@/lib/player-photo"
+      ]
+    },
+    {
+      "id": "src/app/api/players/custom/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/players/custom/route.ts",
+      "lines": 267,
+      "exports": [],
+      "imports": [
+        "@/lib/types",
+        "@/lib/turso"
+      ]
+    },
+    {
+      "id": "src/app/api/players/search/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/players/search/route.ts",
+      "lines": 79,
+      "exports": [],
+      "imports": [
+        "@/lib/football-player-service",
+        "@/lib/player-db",
+        "@/lib/turso"
+      ]
+    },
+    {
+      "id": "src/app/api/players/[id]/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/players/[id]/route.ts",
+      "lines": 23,
+      "exports": [],
+      "imports": [
+        "@/lib/football-player-service"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/cards/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/cards/route.ts",
+      "lines": 35,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/complete/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/complete/route.ts",
+      "lines": 51,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/draw/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/draw/route.ts",
+      "lines": 37,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/join/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/join/route.ts",
+      "lines": 61,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/leave/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/leave/route.ts",
+      "lines": 30,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/roster/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/roster/route.ts",
+      "lines": 35,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/route.ts",
+      "lines": 82,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/sync/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/sync/route.ts",
+      "lines": 39,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/api/rooms/[code]/participants/route.ts",
+      "label": "route",
+      "type": "api-route",
+      "path": "src/app/api/rooms/[code]/participants/route.ts",
+      "lines": 46,
+      "exports": [],
+      "imports": [
+        "@/lib/room-db"
+      ]
+    },
+    {
+      "id": "src/app/auction/cards/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/cards/page.tsx",
+      "lines": 8,
+      "exports": [
+        "CardsPage"
+      ],
+      "imports": [
+        "@/components/cards/cards-screen"
+      ]
+    },
+    {
+      "id": "src/app/auction/draw/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/draw/page.tsx",
+      "lines": 7,
+      "exports": [
+        "DrawPage"
+      ],
+      "imports": [
+        "@/components/auction/draw-screen"
+      ]
+    },
+    {
+      "id": "src/app/auction/history/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/history/page.tsx",
+      "lines": 177,
+      "exports": [
+        "HistoryPage"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/lib/utils",
+        "./[id]/page"
+      ]
+    },
+    {
+      "id": "src/app/auction/history/[id]/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/history/[id]/page.tsx",
+      "lines": 472,
+      "exports": [
+        "generateAuctionHistoryText",
+        "AuctionHistoryDetailPage"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/app/auction/lineups/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/lineups/page.tsx",
+      "lines": 239,
+      "exports": [
+        "LineupsPage"
+      ],
+      "imports": [
+        "@/lib/auction-store",
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/card",
+        "@/lib/formations",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/app/auction/lineups/[teamId]/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/lineups/[teamId]/page.tsx",
+      "lines": 65,
+      "exports": [
+        "TeamLineupPage"
+      ],
+      "imports": [
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/components/layout/app-layout",
+        "@/components/lineups/lineup-builder-screen",
+        "@/components/ui/button"
+      ]
+    },
+    {
+      "id": "src/app/auction/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/page.tsx",
+      "lines": 689,
+      "exports": [
+        "DashboardPage"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/badge",
+        "@/components/auction/add-player-modal",
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/lib/utils",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/app/auction/points-table/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/points-table/page.tsx",
+      "lines": 1743,
+      "exports": [
+        "PointsTablePage"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "@/components/ui/card",
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/lib/utils",
+        "@/lib/utils",
+        "@/lib/room-store",
+        "@/components/ui/drawer",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/app/auction/pool/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/pool/page.tsx",
+      "lines": 944,
+      "exports": [
+        "PoolPage"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/select",
+        "@/components/ui/card",
+        "@/components/ui/player-card",
+        "@/components/ui/label",
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/lib/utils",
+        "@/lib/types",
+        "@/components/auction/add-player-modal",
+        "@/components/auction/bulk-import-modal",
+        "@/components/ui/dialog",
+        "@/components/ui/badge",
+        "@/components/auction/unsold-players-modal",
+        "@/components/mystery-pot/mystery-pot-screen"
+      ]
+    },
+    {
+      "id": "src/app/auction/settings/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/settings/page.tsx",
+      "lines": 1120,
+      "exports": [
+        "SettingsPage"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/switch",
+        "@/components/ui/separator",
+        "@/components/ui/select",
+        "@/lib/auction-store",
+        "@/lib/room-store",
+        "@/lib/use-hydrated",
+        "@/lib/utils",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/app/auction/vibe/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/vibe/page.tsx",
+      "lines": 8,
+      "exports": [
+        "AuctionVibePage"
+      ],
+      "imports": [
+        "@/components/vinyl/vinyl-screen"
+      ]
+    },
+    {
+      "id": "src/app/auction/vinyl/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/vinyl/page.tsx",
+      "lines": 8,
+      "exports": [
+        "AuctionVinylPage"
+      ],
+      "imports": [
+        "@/components/vinyl/vinyl-screen"
+      ]
+    },
+    {
+      "id": "src/app/auction/wheel/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/auction/wheel/page.tsx",
+      "lines": 8,
+      "exports": [
+        "WheelPage"
+      ],
+      "imports": [
+        "@/components/wheel/wheel-screen"
+      ]
+    },
+    {
+      "id": "src/app/cards/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/cards/page.tsx",
+      "lines": 8,
+      "exports": [
+        "DirectCardsPage"
+      ],
+      "imports": [
+        "@/components/cards/cards-screen"
+      ]
+    },
+    {
+      "id": "src/app/credits/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/credits/page.tsx",
+      "lines": 12,
+      "exports": [
+        "metadata",
+        "CreditsPage"
+      ],
+      "imports": [
+        "@/components/credits/star-wars-crawl"
+      ]
+    },
+    {
+      "id": "src/app/globals.css",
+      "label": "globals",
+      "type": "page",
+      "path": "src/app/globals.css",
+      "lines": 470,
+      "exports": [],
+      "imports": []
+    },
+    {
+      "id": "src/app/how-it-works/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/how-it-works/page.tsx",
+      "lines": 582,
+      "exports": [
+        "HowItWorksPage"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/app/layout.tsx",
+      "label": "layout",
+      "type": "page",
+      "path": "src/app/layout.tsx",
+      "lines": 40,
+      "exports": [
+        "metadata",
+        "RootLayout"
+      ],
+      "imports": [
+        "@/components/providers",
+        "@/components/layout/global-music-player"
+      ]
+    },
+    {
+      "id": "src/app/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/page.tsx",
+      "lines": 97,
+      "exports": [
+        "LandingPage"
+      ],
+      "imports": [
+        "@/components/landing/background-slideshow"
+      ]
+    },
+    {
+      "id": "src/app/template.tsx",
+      "label": "template",
+      "type": "page",
+      "path": "src/app/template.tsx",
+      "lines": 22,
+      "exports": [
+        "Template"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/app/vibe/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/vibe/page.tsx",
+      "lines": 8,
+      "exports": [
+        "DirectVibePage"
+      ],
+      "imports": [
+        "@/components/vinyl/vinyl-screen"
+      ]
+    },
+    {
+      "id": "src/app/vinyl/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/vinyl/page.tsx",
+      "lines": 8,
+      "exports": [
+        "DirectVinylPage"
+      ],
+      "imports": [
+        "@/components/vinyl/vinyl-screen"
+      ]
+    },
+    {
+      "id": "src/app/wheel/page.tsx",
+      "label": "page",
+      "type": "page",
+      "path": "src/app/wheel/page.tsx",
+      "lines": 8,
+      "exports": [
+        "WheelDirectPage"
+      ],
+      "imports": [
+        "@/components/wheel/wheel-screen"
+      ]
+    },
+    {
+      "id": "src/components/auction/add-player-modal.tsx",
+      "label": "add-player-modal",
+      "type": "component",
+      "path": "src/components/auction/add-player-modal.tsx",
+      "lines": 983,
+      "exports": [
+        "AddPlayerModal"
+      ],
+      "imports": [
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select",
+        "@/components/ui/dialog",
+        "@/components/ui/badge",
+        "@/lib/types",
+        "@/lib/player-provider",
+        "@/lib/utils",
+        "@/components/ui/country-flag",
+        "@/lib/utils",
+        "@/lib/auction-store"
+      ]
+    },
+    {
+      "id": "src/components/auction/assignment-panel.tsx",
+      "label": "assignment-panel",
+      "type": "component",
+      "path": "src/components/auction/assignment-panel.tsx",
+      "lines": 289,
+      "exports": [
+        "AssignmentPanel"
+      ],
+      "imports": [
+        "@/lib/types",
+        "@/lib/utils",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/card",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/auction/bulk-import-modal.tsx",
+      "label": "bulk-import-modal",
+      "type": "component",
+      "path": "src/components/auction/bulk-import-modal.tsx",
+      "lines": 1307,
+      "exports": [
+        "BulkImportModal"
+      ],
+      "imports": [
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select",
+        "@/components/ui/dialog",
+        "@/components/ui/badge",
+        "@/components/ui/scroll-area",
+        "@/lib/types",
+        "@/components/ui/country-flag",
+        "@/lib/utils",
+        "@/lib/utils",
+        "@/lib/auction-store"
+      ]
+    },
+    {
+      "id": "src/components/auction/draw-screen.tsx",
+      "label": "draw-screen",
+      "type": "component",
+      "path": "src/components/auction/draw-screen.tsx",
+      "lines": 850,
+      "exports": [
+        "DrawScreen"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/badge",
+        "@/lib/auction-store",
+        "@/lib/types",
+        "@/lib/utils",
+        "@/lib/confetti",
+        "./assignment-panel",
+        "./player-hype",
+        "@/lib/use-hydrated",
+        "@/components/core/animated-number"
+      ]
+    },
+    {
+      "id": "src/components/auction/player-hype.tsx",
+      "label": "player-hype",
+      "type": "component",
+      "path": "src/components/auction/player-hype.tsx",
+      "lines": 130,
+      "exports": [
+        "PlayerHype"
+      ],
+      "imports": [
+        "@/components/ui/card"
+      ]
+    },
+    {
+      "id": "src/components/auction/unsold-players-modal.tsx",
+      "label": "unsold-players-modal",
+      "type": "component",
+      "path": "src/components/auction/unsold-players-modal.tsx",
+      "lines": 571,
+      "exports": [
+        "UnsoldPlayersModal"
+      ],
+      "imports": [
+        "@/components/ui/dialog",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select",
+        "@/components/ui/badge",
+        "@/components/ui/scroll-area",
+        "@/components/ui/country-flag",
+        "@/lib/auction-store",
+        "@/lib/types",
+        "@/lib/utils",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/cards/cards-data.ts",
+      "label": "cards-data",
+      "type": "component",
+      "path": "src/components/cards/cards-data.ts",
+      "lines": 14,
+      "exports": [
+        "CustomAuctionCard",
+        "DEFAULT_POWER_CARDS",
+        "DEFAULT_SICK_CARDS"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/components/cards/cards-screen.tsx",
+      "label": "cards-screen",
+      "type": "component",
+      "path": "src/components/cards/cards-screen.tsx",
+      "lines": 938,
+      "exports": [
+        "CardsScreen"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "./coverflow-carousel",
+        "./cards-data",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/card",
+        "@/lib/confetti",
+        "@/lib/utils",
+        "@/lib/auction-store"
+      ]
+    },
+    {
+      "id": "src/components/cards/coverflow-carousel.tsx",
+      "label": "coverflow-carousel",
+      "type": "component",
+      "path": "src/components/cards/coverflow-carousel.tsx",
+      "lines": 541,
+      "exports": [
+        "CoverflowCarouselProps",
+        "CoverflowCarousel"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "./cards-data"
+      ]
+    },
+    {
+      "id": "src/components/core/animated-number.tsx",
+      "label": "animated-number",
+      "type": "component",
+      "path": "src/components/core/animated-number.tsx",
+      "lines": 42,
+      "exports": [
+        "AnimatedNumberProps",
+        "AnimatedNumber"
+      ],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/credits/star-wars-crawl.tsx",
+      "label": "star-wars-crawl",
+      "type": "component",
+      "path": "src/components/credits/star-wars-crawl.tsx",
+      "lines": 1020,
+      "exports": [
+        "StarWarsCrawl"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/components/landing/background-slideshow.tsx",
+      "label": "background-slideshow",
+      "type": "component",
+      "path": "src/components/landing/background-slideshow.tsx",
+      "lines": 113,
+      "exports": [
+        "BackgroundSlideshow"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/components/layout/app-layout.tsx",
+      "label": "app-layout",
+      "type": "component",
+      "path": "src/components/layout/app-layout.tsx",
+      "lines": 113,
+      "exports": [
+        "AppLayout"
+      ],
+      "imports": [
+        "./sidebar",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/layout/dynamic-island-music.tsx",
+      "label": "dynamic-island-music",
+      "type": "component",
+      "path": "src/components/layout/dynamic-island-music.tsx",
+      "lines": 365,
+      "exports": [
+        "DynamicIslandMusic"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "@/lib/music-store"
+      ]
+    },
+    {
+      "id": "src/components/layout/global-music-player.tsx",
+      "label": "global-music-player",
+      "type": "component",
+      "path": "src/components/layout/global-music-player.tsx",
+      "lines": 176,
+      "exports": [
+        "GlobalMusicPlayer"
+      ],
+      "imports": [
+        "@/lib/music-store",
+        "./dynamic-island-music"
+      ]
+    },
+    {
+      "id": "src/components/layout/page-header.tsx",
+      "label": "page-header",
+      "type": "component",
+      "path": "src/components/layout/page-header.tsx",
+      "lines": 62,
+      "exports": [
+        "PageHeader"
+      ],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/layout/sidebar-music-player.tsx",
+      "label": "sidebar-music-player",
+      "type": "component",
+      "path": "src/components/layout/sidebar-music-player.tsx",
+      "lines": 84,
+      "exports": [
+        "SidebarMusicPlayer"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "@/lib/music-store"
+      ]
+    },
+    {
+      "id": "src/components/layout/sidebar.tsx",
+      "label": "sidebar",
+      "type": "component",
+      "path": "src/components/layout/sidebar.tsx",
+      "lines": 168,
+      "exports": [
+        "Sidebar"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "./sidebar-music-player"
+      ]
+    },
+    {
+      "id": "src/components/layout/vinyl-coverflow.tsx",
+      "label": "vinyl-coverflow",
+      "type": "component",
+      "path": "src/components/layout/vinyl-coverflow.tsx",
+      "lines": 345,
+      "exports": [
+        "VinylCoverflowProps",
+        "VinylCoverflow"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "@/lib/music-playlists",
+        "@/lib/music-store"
+      ]
+    },
+    {
+      "id": "src/components/lineups/ai-team-rating-modal.tsx",
+      "label": "ai-team-rating-modal",
+      "type": "component",
+      "path": "src/components/lineups/ai-team-rating-modal.tsx",
+      "lines": 431,
+      "exports": [
+        "AiTeamRatingModal"
+      ],
+      "imports": [
+        "@/components/ui/dialog",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/lib/types",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/lineups/lineup-builder-screen.tsx",
+      "label": "lineup-builder-screen",
+      "type": "component",
+      "path": "src/components/lineups/lineup-builder-screen.tsx",
+      "lines": 438,
+      "exports": [
+        "LineupBuilderScreen"
+      ],
+      "imports": [
+        "@/components/ui/button",
+        "@/components/ui/select",
+        "@/components/lineups/pitch-board",
+        "@/components/lineups/roster-sidebar",
+        "@/components/lineups/player-picker-dialog",
+        "@/components/lineups/ai-team-rating-modal",
+        "@/lib/formations",
+        "@/lib/auction-store",
+        "@/lib/types",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/lineups/pitch-board.tsx",
+      "label": "pitch-board",
+      "type": "component",
+      "path": "src/components/lineups/pitch-board.tsx",
+      "lines": 314,
+      "exports": [
+        "PitchBoard"
+      ],
+      "imports": [
+        "@/lib/types",
+        "@/components/ui/country-flag",
+        "@/lib/utils",
+        "@/components/ui/button"
+      ]
+    },
+    {
+      "id": "src/components/lineups/player-picker-dialog.tsx",
+      "label": "player-picker-dialog",
+      "type": "component",
+      "path": "src/components/lineups/player-picker-dialog.tsx",
+      "lines": 259,
+      "exports": [
+        "PlayerPickerDialog"
+      ],
+      "imports": [
+        "@/components/ui/dialog",
+        "@/components/ui/input",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/lib/types",
+        "@/components/ui/country-flag",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/lineups/roster-sidebar.tsx",
+      "label": "roster-sidebar",
+      "type": "component",
+      "path": "src/components/lineups/roster-sidebar.tsx",
+      "lines": 249,
+      "exports": [
+        "RosterSidebar"
+      ],
+      "imports": [
+        "@/lib/types",
+        "@/components/ui/country-flag",
+        "@/lib/utils",
+        "@/components/ui/input"
+      ]
+    },
+    {
+      "id": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "label": "add-mystery-player-modal",
+      "type": "component",
+      "path": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "lines": 490,
+      "exports": [
+        "AddMysteryPlayerModal"
+      ],
+      "imports": [
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select",
+        "@/components/ui/dialog",
+        "@/components/ui/badge",
+        "@/lib/types",
+        "@/lib/player-provider",
+        "@/lib/utils",
+        "@/components/ui/country-flag",
+        "@/lib/utils",
+        "@/lib/mystery-pot-store"
+      ]
+    },
+    {
+      "id": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "label": "edit-mystery-player-modal",
+      "type": "component",
+      "path": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "lines": 205,
+      "exports": [
+        "EditMysteryPlayerModal"
+      ],
+      "imports": [
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select",
+        "@/components/ui/dialog",
+        "@/lib/types",
+        "@/lib/mystery-pot-store"
+      ]
+    },
+    {
+      "id": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "label": "mystery-pot-screen",
+      "type": "component",
+      "path": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "lines": 1083,
+      "exports": [
+        "MysteryPotScreen"
+      ],
+      "imports": [
+        "@/lib/mystery-pot-store",
+        "@/lib/auction-store",
+        "@/lib/types",
+        "@/lib/utils",
+        "./add-mystery-player-modal",
+        "./edit-mystery-player-modal",
+        "@/components/ui/dialog",
+        "@/components/ui/input",
+        "@/components/ui/button"
+      ]
+    },
+    {
+      "id": "src/components/providers/smooth-scroll-provider.tsx",
+      "label": "smooth-scroll-provider",
+      "type": "component",
+      "path": "src/components/providers/smooth-scroll-provider.tsx",
+      "lines": 16,
+      "exports": [
+        "SmoothScrollProvider"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/components/providers.tsx",
+      "label": "providers",
+      "type": "component",
+      "path": "src/components/providers.tsx",
+      "lines": 29,
+      "exports": [
+        "Providers"
+      ],
+      "imports": [
+        "@/components/ui/tooltip",
+        "@/components/providers/smooth-scroll-provider",
+        "@/components/room/room-mode-guard"
+      ]
+    },
+    {
+      "id": "src/components/room/contestant-auction-summary-screen.tsx",
+      "label": "contestant-auction-summary-screen",
+      "type": "component",
+      "path": "src/components/room/contestant-auction-summary-screen.tsx",
+      "lines": 480,
+      "exports": [
+        "ContestantAuctionSummaryScreen"
+      ],
+      "imports": [
+        "@/lib/room-store",
+        "@/lib/auction-store",
+        "@/lib/utils",
+        "@/lib/types",
+        "@/lib/confetti"
+      ]
+    },
+    {
+      "id": "src/components/room/contestant-completed-screen.tsx",
+      "label": "contestant-completed-screen",
+      "type": "component",
+      "path": "src/components/room/contestant-completed-screen.tsx",
+      "lines": 373,
+      "exports": [
+        "ContestantCompletedScreen"
+      ],
+      "imports": [
+        "@/lib/room-store",
+        "@/lib/auction-store",
+        "@/lib/utils",
+        "@/lib/types",
+        "@/lib/confetti"
+      ]
+    },
+    {
+      "id": "src/components/room/contestant-placeholder.tsx",
+      "label": "contestant-placeholder",
+      "type": "component",
+      "path": "src/components/room/contestant-placeholder.tsx",
+      "lines": 523,
+      "exports": [
+        "ContestantPlaceholder"
+      ],
+      "imports": [
+        "@/lib/room-store",
+        "@/lib/auction-store",
+        "@/lib/utils",
+        "./tabs/contestant-draw-tab",
+        "./tabs/contestant-roster-tab",
+        "./tabs/contestant-history-tab",
+        "./tabs/contestant-cards-tab",
+        "./tabs/contestant-transactions-tab",
+        "./contestant-completed-screen",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/components/room/room-contestant-poller.tsx",
+      "label": "room-contestant-poller",
+      "type": "component",
+      "path": "src/components/room/room-contestant-poller.tsx",
+      "lines": 227,
+      "exports": [
+        "RoomContestantPoller"
+      ],
+      "imports": [
+        "@/lib/room-store",
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/components/room/room-host-poller.tsx",
+      "label": "room-host-poller",
+      "type": "component",
+      "path": "src/components/room/room-host-poller.tsx",
+      "lines": 205,
+      "exports": [
+        "RoomHostPoller"
+      ],
+      "imports": [
+        "@/lib/room-store",
+        "@/lib/auction-store",
+        "@/lib/use-hydrated",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/components/room/room-mode-guard.tsx",
+      "label": "room-mode-guard",
+      "type": "component",
+      "path": "src/components/room/room-mode-guard.tsx",
+      "lines": 38,
+      "exports": [
+        "RoomModeGuard"
+      ],
+      "imports": [
+        "@/lib/room-store",
+        "@/lib/use-hydrated",
+        "./contestant-placeholder",
+        "./contestant-completed-screen",
+        "./room-host-poller",
+        "./room-contestant-poller"
+      ]
+    },
+    {
+      "id": "src/components/room/tabs/contestant-cards-tab.tsx",
+      "label": "contestant-cards-tab",
+      "type": "component",
+      "path": "src/components/room/tabs/contestant-cards-tab.tsx",
+      "lines": 348,
+      "exports": [
+        "ContestantCardsTab"
+      ],
+      "imports": [
+        "@/components/cards/cards-data",
+        "@/lib/utils",
+        "@/lib/room-store"
+      ]
+    },
+    {
+      "id": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "label": "contestant-draw-tab",
+      "type": "component",
+      "path": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "lines": 677,
+      "exports": [
+        "ContestantDrawTab"
+      ],
+      "imports": [
+        "@/lib/auction-store",
+        "@/lib/room-store",
+        "@/lib/utils",
+        "@/lib/types",
+        "@/components/core/animated-number"
+      ]
+    },
+    {
+      "id": "src/components/room/tabs/contestant-history-tab.tsx",
+      "label": "contestant-history-tab",
+      "type": "component",
+      "path": "src/components/room/tabs/contestant-history-tab.tsx",
+      "lines": 171,
+      "exports": [
+        "ContestantHistoryTab"
+      ],
+      "imports": [
+        "@/lib/auction-store",
+        "@/lib/room-store",
+        "@/lib/utils",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/components/room/tabs/contestant-roster-tab.tsx",
+      "label": "contestant-roster-tab",
+      "type": "component",
+      "path": "src/components/room/tabs/contestant-roster-tab.tsx",
+      "lines": 194,
+      "exports": [
+        "ContestantRosterTab"
+      ],
+      "imports": [
+        "@/lib/auction-store",
+        "@/lib/room-store",
+        "@/lib/utils",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/components/room/tabs/contestant-transactions-tab.tsx",
+      "label": "contestant-transactions-tab",
+      "type": "component",
+      "path": "src/components/room/tabs/contestant-transactions-tab.tsx",
+      "lines": 201,
+      "exports": [
+        "ContestantTransactionsTab"
+      ],
+      "imports": [
+        "@/lib/auction-store",
+        "@/lib/room-store",
+        "@/lib/utils",
+        "@/lib/types"
+      ]
+    },
+    {
+      "id": "src/components/ui/avatar.tsx",
+      "label": "avatar",
+      "type": "component",
+      "path": "src/components/ui/avatar.tsx",
+      "lines": 110,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/badge.tsx",
+      "label": "badge",
+      "type": "component",
+      "path": "src/components/ui/badge.tsx",
+      "lines": 53,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/button.tsx",
+      "label": "button",
+      "type": "component",
+      "path": "src/components/ui/button.tsx",
+      "lines": 59,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/card.tsx",
+      "label": "card",
+      "type": "component",
+      "path": "src/components/ui/card.tsx",
+      "lines": 104,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/command.tsx",
+      "label": "command",
+      "type": "component",
+      "path": "src/components/ui/command.tsx",
+      "lines": 197,
+      "exports": [],
+      "imports": [
+        "@/lib/utils",
+        "@/components/ui/dialog",
+        "@/components/ui/input-group"
+      ]
+    },
+    {
+      "id": "src/components/ui/country-flag.tsx",
+      "label": "country-flag",
+      "type": "component",
+      "path": "src/components/ui/country-flag.tsx",
+      "lines": 68,
+      "exports": [
+        "CountryFlag"
+      ],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/dialog.tsx",
+      "label": "dialog",
+      "type": "component",
+      "path": "src/components/ui/dialog.tsx",
+      "lines": 173,
+      "exports": [],
+      "imports": [
+        "@/lib/utils",
+        "@/components/ui/button"
+      ]
+    },
+    {
+      "id": "src/components/ui/drawer.tsx",
+      "label": "drawer",
+      "type": "component",
+      "path": "src/components/ui/drawer.tsx",
+      "lines": 138,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/dropdown-menu.tsx",
+      "label": "dropdown-menu",
+      "type": "component",
+      "path": "src/components/ui/dropdown-menu.tsx",
+      "lines": 269,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/input-group.tsx",
+      "label": "input-group",
+      "type": "component",
+      "path": "src/components/ui/input-group.tsx",
+      "lines": 159,
+      "exports": [],
+      "imports": [
+        "@/lib/utils",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/textarea"
+      ]
+    },
+    {
+      "id": "src/components/ui/input.tsx",
+      "label": "input",
+      "type": "component",
+      "path": "src/components/ui/input.tsx",
+      "lines": 21,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/label.tsx",
+      "label": "label",
+      "type": "component",
+      "path": "src/components/ui/label.tsx",
+      "lines": 21,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/player-card.tsx",
+      "label": "player-card",
+      "type": "component",
+      "path": "src/components/ui/player-card.tsx",
+      "lines": 431,
+      "exports": [
+        "PlayerCard"
+      ],
+      "imports": [
+        "@/components/ui/badge",
+        "@/lib/utils",
+        "@/lib/types",
+        "@/components/ui/dropdown-menu",
+        "@/components/ui/country-flag",
+        "@/lib/player-photo"
+      ]
+    },
+    {
+      "id": "src/components/ui/progress.tsx",
+      "label": "progress",
+      "type": "component",
+      "path": "src/components/ui/progress.tsx",
+      "lines": 220,
+      "exports": [
+        "PositionGauge",
+        "PositionCompositionPanel"
+      ],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/scroll-area.tsx",
+      "label": "scroll-area",
+      "type": "component",
+      "path": "src/components/ui/scroll-area.tsx",
+      "lines": 58,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/select.tsx",
+      "label": "select",
+      "type": "component",
+      "path": "src/components/ui/select.tsx",
+      "lines": 202,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/separator.tsx",
+      "label": "separator",
+      "type": "component",
+      "path": "src/components/ui/separator.tsx",
+      "lines": 26,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/skeleton.tsx",
+      "label": "skeleton",
+      "type": "component",
+      "path": "src/components/ui/skeleton.tsx",
+      "lines": 14,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/switch.tsx",
+      "label": "switch",
+      "type": "component",
+      "path": "src/components/ui/switch.tsx",
+      "lines": 33,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/tabs.tsx",
+      "label": "tabs",
+      "type": "component",
+      "path": "src/components/ui/tabs.tsx",
+      "lines": 83,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/textarea.tsx",
+      "label": "textarea",
+      "type": "component",
+      "path": "src/components/ui/textarea.tsx",
+      "lines": 19,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/ui/tooltip.tsx",
+      "label": "tooltip",
+      "type": "component",
+      "path": "src/components/ui/tooltip.tsx",
+      "lines": 67,
+      "exports": [],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/vinyl/turntable-deck.tsx",
+      "label": "turntable-deck",
+      "type": "component",
+      "path": "src/components/vinyl/turntable-deck.tsx",
+      "lines": 371,
+      "exports": [
+        "TurntableDeck"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "@/lib/music-playlists",
+        "@/lib/music-store"
+      ]
+    },
+    {
+      "id": "src/components/vinyl/vinyl-3d-carousel.tsx",
+      "label": "vinyl-3d-carousel",
+      "type": "component",
+      "path": "src/components/vinyl/vinyl-3d-carousel.tsx",
+      "lines": 401,
+      "exports": [
+        "Vinyl3DCarousel"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "@/lib/music-playlists",
+        "@/lib/music-store"
+      ]
+    },
+    {
+      "id": "src/components/vinyl/vinyl-screen.tsx",
+      "label": "vinyl-screen",
+      "type": "component",
+      "path": "src/components/vinyl/vinyl-screen.tsx",
+      "lines": 192,
+      "exports": [
+        "VinylScreen"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "./turntable-deck",
+        "./vinyl-3d-carousel",
+        "./vinyl-tracklist",
+        "@/lib/music-store",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/vinyl/vinyl-tracklist.tsx",
+      "label": "vinyl-tracklist",
+      "type": "component",
+      "path": "src/components/vinyl/vinyl-tracklist.tsx",
+      "lines": 477,
+      "exports": [
+        "parseSongAndArtist",
+        "VinylTracklist"
+      ],
+      "imports": [
+        "@/lib/utils",
+        "@/lib/music-playlists",
+        "@/lib/music-store"
+      ]
+    },
+    {
+      "id": "src/components/wheel/spinning-wheel.tsx",
+      "label": "spinning-wheel",
+      "type": "component",
+      "path": "src/components/wheel/spinning-wheel.tsx",
+      "lines": 538,
+      "exports": [
+        "SegmentTheme",
+        "WHEEL_COLORS",
+        "getSegmentColor",
+        "getWinnerIndexFromRotation",
+        "SpinningWheel"
+      ],
+      "imports": [
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/wheel/wheel-entry-panel.tsx",
+      "label": "wheel-entry-panel",
+      "type": "component",
+      "path": "src/components/wheel/wheel-entry-panel.tsx",
+      "lines": 357,
+      "exports": [
+        "WheelEntryPanel"
+      ],
+      "imports": [
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/card",
+        "@/components/ui/badge",
+        "./spinning-wheel",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/wheel/wheel-screen.tsx",
+      "label": "wheel-screen",
+      "type": "component",
+      "path": "src/components/wheel/wheel-screen.tsx",
+      "lines": 430,
+      "exports": [
+        "WheelState",
+        "WheelScreen"
+      ],
+      "imports": [
+        "@/components/layout/app-layout",
+        "@/components/layout/page-header",
+        "./spinning-wheel",
+        "./wheel-entry-panel",
+        "./winner-banner",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/lib/utils"
+      ]
+    },
+    {
+      "id": "src/components/wheel/winner-banner.tsx",
+      "label": "winner-banner",
+      "type": "component",
+      "path": "src/components/wheel/winner-banner.tsx",
+      "lines": 147,
+      "exports": [
+        "fireWheelWinnerConfetti",
+        "WinnerBanner"
+      ],
+      "imports": [
+        "@/components/ui/button"
+      ]
+    },
+    {
+      "id": "src/data/players-catalog.json",
+      "label": "players-catalog",
+      "type": "file",
+      "path": "src/data/players-catalog.json",
+      "lines": 63020,
+      "exports": [],
+      "imports": []
+    },
+    {
+      "id": "src/lib/auction-store.ts",
+      "label": "auction-store",
+      "type": "lib-module",
+      "path": "src/lib/auction-store.ts",
+      "lines": 857,
+      "exports": [
+        "useAuctionStore",
+        "v4"
+      ],
+      "imports": [
+        "./types",
+        "./formations"
+      ]
+    },
+    {
+      "id": "src/lib/confetti.ts",
+      "label": "confetti",
+      "type": "lib-module",
+      "path": "src/lib/confetti.ts",
+      "lines": 93,
+      "exports": [
+        "firePlayerRevealConfetti",
+        "fireDrawStartConfetti"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/lib/football-player-client.ts",
+      "label": "football-player-client",
+      "type": "lib-module",
+      "path": "src/lib/football-player-client.ts",
+      "lines": 48,
+      "exports": [
+        "SearchOptions",
+        "SearchResult"
+      ],
+      "imports": [
+        "./player-db-types"
+      ]
+    },
+    {
+      "id": "src/lib/football-player-service.ts",
+      "label": "football-player-service",
+      "type": "lib-module",
+      "path": "src/lib/football-player-service.ts",
+      "lines": 230,
+      "exports": [
+        "FootballPlayerService",
+        "getFootballPlayerService"
+      ],
+      "imports": [
+        "./player-db",
+        "./players-data",
+        "./turso"
+      ]
+    },
+    {
+      "id": "src/lib/formations.ts",
+      "label": "formations",
+      "type": "lib-module",
+      "path": "src/lib/formations.ts",
+      "lines": 144,
+      "exports": [
+        "FORMATIONS",
+        "DEFAULT_FORMATION_ID",
+        "getFormation"
+      ],
+      "imports": [
+        "./types"
+      ]
+    },
+    {
+      "id": "src/lib/music-db.ts",
+      "label": "music-db",
+      "type": "lib-module",
+      "path": "src/lib/music-db.ts",
+      "lines": 204,
+      "exports": [],
+      "imports": [
+        "./music-playlists",
+        "./turso"
+      ]
+    },
+    {
+      "id": "src/lib/music-playlists.ts",
+      "label": "music-playlists",
+      "type": "lib-module",
+      "path": "src/lib/music-playlists.ts",
+      "lines": 166,
+      "exports": [
+        "VinylSong",
+        "VinylCategory",
+        "extractYouTubeId",
+        "VINYL_CATEGORIES"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/lib/music-store.ts",
+      "label": "music-store",
+      "type": "lib-module",
+      "path": "src/lib/music-store.ts",
+      "lines": 431,
+      "exports": [
+        "PlaylistTrack",
+        "formatTime",
+        "mapSongsToTracks",
+        "PLAYLIST_TRACKS",
+        "useMusicStore"
+      ],
+      "imports": [
+        "./music-playlists"
+      ]
+    },
+    {
+      "id": "src/lib/mystery-pot-store.ts",
+      "label": "mystery-pot-store",
+      "type": "lib-module",
+      "path": "src/lib/mystery-pot-store.ts",
+      "lines": 392,
+      "exports": [
+        "MysteryPlayer",
+        "MysteryPot",
+        "useMysteryPotStore"
+      ],
+      "imports": [
+        "./types"
+      ]
+    },
+    {
+      "id": "src/lib/player-db-types.ts",
+      "label": "player-db-types",
+      "type": "lib-module",
+      "path": "src/lib/player-db-types.ts",
+      "lines": 93,
+      "exports": [
+        "PlayerSource",
+        "Player",
+        "ExternalIds",
+        "PhotoSource",
+        "PlayerSearchResult",
+        "PlayerFilters",
+        "IngestionRecord",
+        "SearchIndexEntry"
+      ],
+      "imports": [
+        "./types"
+      ]
+    },
+    {
+      "id": "src/lib/player-db.ts",
+      "label": "player-db",
+      "type": "lib-module",
+      "path": "src/lib/player-db.ts",
+      "lines": 238,
+      "exports": [
+        "stripAccents",
+        "mapPosition",
+        "normalizeNationalityCode",
+        "getRoleFromPosition",
+        "PlayerRow",
+        "rowToPlayer"
+      ],
+      "imports": [
+        "./player-db-types",
+        "./types"
+      ]
+    },
+    {
+      "id": "src/lib/player-photo.ts",
+      "label": "player-photo",
+      "type": "lib-module",
+      "path": "src/lib/player-photo.ts",
+      "lines": 92,
+      "exports": [
+        "generatePlayerPhoto"
+      ],
+      "imports": [
+        "./types"
+      ]
+    },
+    {
+      "id": "src/lib/player-provider.ts",
+      "label": "player-provider",
+      "type": "lib-module",
+      "path": "src/lib/player-provider.ts",
+      "lines": 134,
+      "exports": [
+        "getPlayerDataProvider",
+        "setPlayerDataProvider"
+      ],
+      "imports": [
+        "./types",
+        "./player-db-types",
+        "./football-player-client",
+        "./player-photo"
+      ]
+    },
+    {
+      "id": "src/lib/players-data.ts",
+      "label": "players-data",
+      "type": "lib-module",
+      "path": "src/lib/players-data.ts",
+      "lines": 1485,
+      "exports": [
+        "PLAYERS",
+        "getAllPlayers"
+      ],
+      "imports": [
+        "./types",
+        "./player-photo",
+        "@/data/players-catalog.json"
+      ]
+    },
+    {
+      "id": "src/lib/room-db.ts",
+      "label": "room-db",
+      "type": "lib-module",
+      "path": "src/lib/room-db.ts",
+      "lines": 547,
+      "exports": [],
+      "imports": [
+        "./room-types",
+        "./turso"
+      ]
+    },
+    {
+      "id": "src/lib/room-store.ts",
+      "label": "room-store",
+      "type": "lib-module",
+      "path": "src/lib/room-store.ts",
+      "lines": 257,
+      "exports": [
+        "useRoomStore"
+      ],
+      "imports": [
+        "./room-types"
+      ]
+    },
+    {
+      "id": "src/lib/room-types.ts",
+      "label": "room-types",
+      "type": "lib-module",
+      "path": "src/lib/room-types.ts",
+      "lines": 68,
+      "exports": [
+        "RoomStatus",
+        "RoomParticipant",
+        "Room",
+        "ActiveRoomSession"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/lib/turso.ts",
+      "label": "turso",
+      "type": "lib-module",
+      "path": "src/lib/turso.ts",
+      "lines": 7,
+      "exports": [
+        "turso"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/lib/types.ts",
+      "label": "types",
+      "type": "lib-module",
+      "path": "src/lib/types.ts",
+      "lines": 290,
+      "exports": [
+        "PlayerCategory",
+        "PlayerPosition",
+        "PlayerRole",
+        "PlayerStatus",
+        "Currency",
+        "PlayerSource",
+        "Player",
+        "TeamExpense",
+        "Team",
+        "AuctionSettings",
+        "AuctionSnapshot",
+        "Auction",
+        "AuctionPlayer",
+        "PlayerDataProvider",
+        "POSITION_TO_ROLE",
+        "ROLE_COLORS",
+        "ROLE_DRAW_STYLES",
+        "CATEGORY_LABELS",
+        "CATEGORY_COLORS",
+        "CURRENCY_SYMBOLS",
+        "CURRENCY_LOCALES",
+        "formatCurrency",
+        "getPositionLabel",
+        "getRoleFromPosition",
+        "LineupSlot",
+        "Formation",
+        "AiTeamRating",
+        "TeamLineup"
+      ],
+      "imports": [
+        "./room-types"
+      ]
+    },
+    {
+      "id": "src/lib/use-hydrated.ts",
+      "label": "use-hydrated",
+      "type": "lib-module",
+      "path": "src/lib/use-hydrated.ts",
+      "lines": 22,
+      "exports": [
+        "useHydrated"
+      ],
+      "imports": []
+    },
+    {
+      "id": "src/lib/utils.ts",
+      "label": "utils",
+      "type": "lib-module",
+      "path": "src/lib/utils.ts",
+      "lines": 28,
+      "exports": [
+        "cn"
+      ],
+      "imports": [
+        "./types"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "src/app/about/page.tsx",
+      "target": "src/components/credits/star-wars-crawl.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/api/ai/hype/route.ts",
+      "target": "src/lib/turso.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/ai/rate-lineup/route.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/music/route.ts",
+      "target": "src/lib/music-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/bulk-match/route.ts",
+      "target": "src/lib/football-player-service.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/bulk-match/route.ts",
+      "target": "src/lib/player-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/bulk-match/route.ts",
+      "target": "src/lib/turso.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/bulk-match/route.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/bulk-match/route.ts",
+      "target": "src/lib/player-photo.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/custom/route.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/custom/route.ts",
+      "target": "src/lib/turso.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/search/route.ts",
+      "target": "src/lib/football-player-service.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/search/route.ts",
+      "target": "src/lib/player-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/search/route.ts",
+      "target": "src/lib/turso.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/players/[id]/route.ts",
+      "target": "src/lib/football-player-service.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/cards/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/complete/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/draw/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/join/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/leave/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/roster/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/sync/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/api/rooms/[code]/participants/route.ts",
+      "target": "src/lib/room-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/app/auction/cards/page.tsx",
+      "target": "src/components/cards/cards-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/draw/page.tsx",
+      "target": "src/components/auction/draw-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/page.tsx",
+      "target": "src/app/auction/history/[id]/page.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/[id]/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/[id]/page.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/[id]/page.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/[id]/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/[id]/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/[id]/page.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/history/[id]/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/lib/formations.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/[teamId]/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/[teamId]/page.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/[teamId]/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/[teamId]/page.tsx",
+      "target": "src/components/lineups/lineup-builder-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/lineups/[teamId]/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/components/auction/add-player-modal.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/page.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/components/ui/drawer.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/points-table/page.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/player-card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/auction/add-player-modal.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/auction/bulk-import-modal.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/auction/unsold-players-modal.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/pool/page.tsx",
+      "target": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/ui/switch.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/ui/separator.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/settings/page.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/vibe/page.tsx",
+      "target": "src/components/vinyl/vinyl-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/vinyl/page.tsx",
+      "target": "src/components/vinyl/vinyl-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/auction/wheel/page.tsx",
+      "target": "src/components/wheel/wheel-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/cards/page.tsx",
+      "target": "src/components/cards/cards-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/credits/page.tsx",
+      "target": "src/components/credits/star-wars-crawl.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/layout.tsx",
+      "target": "src/components/providers.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/layout.tsx",
+      "target": "src/components/layout/global-music-player.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/page.tsx",
+      "target": "src/components/landing/background-slideshow.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/vibe/page.tsx",
+      "target": "src/components/vinyl/vinyl-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/vinyl/page.tsx",
+      "target": "src/components/vinyl/vinyl-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/app/wheel/page.tsx",
+      "target": "src/components/wheel/wheel-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/lib/player-provider.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/add-player-modal.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/assignment-panel.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/assignment-panel.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/assignment-panel.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/assignment-panel.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/assignment-panel.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/assignment-panel.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/scroll-area.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/bulk-import-modal.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/lib/confetti.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/components/auction/assignment-panel.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/components/auction/player-hype.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/draw-screen.tsx",
+      "target": "src/components/core/animated-number.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/player-hype.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/scroll-area.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/auction/unsold-players-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/components/cards/coverflow-carousel.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/components/cards/cards-data.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/lib/confetti.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/cards-screen.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/coverflow-carousel.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/cards/coverflow-carousel.tsx",
+      "target": "src/components/cards/cards-data.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/core/animated-number.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/app-layout.tsx",
+      "target": "src/components/layout/sidebar.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/app-layout.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/dynamic-island-music.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/dynamic-island-music.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/global-music-player.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/global-music-player.tsx",
+      "target": "src/components/layout/dynamic-island-music.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/page-header.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/sidebar-music-player.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/sidebar-music-player.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/sidebar.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/sidebar.tsx",
+      "target": "src/components/layout/sidebar-music-player.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/vinyl-coverflow.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/vinyl-coverflow.tsx",
+      "target": "src/lib/music-playlists.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/layout/vinyl-coverflow.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/ai-team-rating-modal.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/ai-team-rating-modal.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/ai-team-rating-modal.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/ai-team-rating-modal.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/ai-team-rating-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/components/lineups/pitch-board.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/components/lineups/roster-sidebar.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/components/lineups/player-picker-dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/components/lineups/ai-team-rating-modal.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/lib/formations.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/lineup-builder-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/pitch-board.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/pitch-board.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/pitch-board.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/pitch-board.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/player-picker-dialog.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/player-picker-dialog.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/player-picker-dialog.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/player-picker-dialog.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/player-picker-dialog.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/player-picker-dialog.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/player-picker-dialog.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/roster-sidebar.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/roster-sidebar.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/roster-sidebar.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/lineups/roster-sidebar.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/lib/player-provider.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "target": "src/lib/mystery-pot-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "target": "src/components/ui/label.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "target": "src/components/ui/select.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "target": "src/lib/mystery-pot-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/lib/mystery-pot-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/components/mystery-pot/add-mystery-player-modal.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/components/mystery-pot/edit-mystery-player-modal.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/mystery-pot/mystery-pot-screen.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/providers.tsx",
+      "target": "src/components/ui/tooltip.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/providers.tsx",
+      "target": "src/components/providers/smooth-scroll-provider.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/providers.tsx",
+      "target": "src/components/room/room-mode-guard.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-auction-summary-screen.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-auction-summary-screen.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-auction-summary-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-auction-summary-screen.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-auction-summary-screen.tsx",
+      "target": "src/lib/confetti.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-completed-screen.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-completed-screen.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-completed-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-completed-screen.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-completed-screen.tsx",
+      "target": "src/lib/confetti.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/components/room/tabs/contestant-roster-tab.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/components/room/tabs/contestant-history-tab.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/components/room/tabs/contestant-cards-tab.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/components/room/tabs/contestant-transactions-tab.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/components/room/contestant-completed-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/contestant-placeholder.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-contestant-poller.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-contestant-poller.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-contestant-poller.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-contestant-poller.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-host-poller.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-host-poller.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-host-poller.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-host-poller.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-mode-guard.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-mode-guard.tsx",
+      "target": "src/lib/use-hydrated.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-mode-guard.tsx",
+      "target": "src/components/room/contestant-placeholder.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-mode-guard.tsx",
+      "target": "src/components/room/contestant-completed-screen.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-mode-guard.tsx",
+      "target": "src/components/room/room-host-poller.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/room-mode-guard.tsx",
+      "target": "src/components/room/room-contestant-poller.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-cards-tab.tsx",
+      "target": "src/components/cards/cards-data.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-cards-tab.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-cards-tab.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-draw-tab.tsx",
+      "target": "src/components/core/animated-number.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-history-tab.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-history-tab.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-history-tab.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-history-tab.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-roster-tab.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-roster-tab.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-roster-tab.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-roster-tab.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-transactions-tab.tsx",
+      "target": "src/lib/auction-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-transactions-tab.tsx",
+      "target": "src/lib/room-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-transactions-tab.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/room/tabs/contestant-transactions-tab.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/avatar.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/badge.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/button.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/card.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "src/components/ui/dialog.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "src/components/ui/input-group.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/country-flag.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/dialog.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/dialog.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/drawer.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/dropdown-menu.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/input-group.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/input-group.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/input-group.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/input-group.tsx",
+      "target": "src/components/ui/textarea.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/input.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/label.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/player-card.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/player-card.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/player-card.tsx",
+      "target": "src/lib/types.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/player-card.tsx",
+      "target": "src/components/ui/dropdown-menu.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/player-card.tsx",
+      "target": "src/components/ui/country-flag.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/player-card.tsx",
+      "target": "src/lib/player-photo.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/progress.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/scroll-area.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/select.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/separator.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/skeleton.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/switch.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/tabs.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/textarea.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/ui/tooltip.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/turntable-deck.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/turntable-deck.tsx",
+      "target": "src/lib/music-playlists.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/turntable-deck.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-3d-carousel.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-3d-carousel.tsx",
+      "target": "src/lib/music-playlists.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-3d-carousel.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-screen.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-screen.tsx",
+      "target": "src/components/vinyl/turntable-deck.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-screen.tsx",
+      "target": "src/components/vinyl/vinyl-3d-carousel.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-screen.tsx",
+      "target": "src/components/vinyl/vinyl-tracklist.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-screen.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-tracklist.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-tracklist.tsx",
+      "target": "src/lib/music-playlists.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/vinyl/vinyl-tracklist.tsx",
+      "target": "src/lib/music-store.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/spinning-wheel.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-entry-panel.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-entry-panel.tsx",
+      "target": "src/components/ui/input.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-entry-panel.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-entry-panel.tsx",
+      "target": "src/components/ui/badge.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-entry-panel.tsx",
+      "target": "src/components/wheel/spinning-wheel.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-entry-panel.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/components/layout/app-layout.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/components/layout/page-header.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/components/wheel/spinning-wheel.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/components/wheel/wheel-entry-panel.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/components/wheel/winner-banner.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/components/ui/card.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/wheel-screen.tsx",
+      "target": "src/lib/utils.ts",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/components/wheel/winner-banner.tsx",
+      "target": "src/components/ui/button.tsx",
+      "relation": "renders/uses"
+    },
+    {
+      "source": "src/lib/auction-store.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/auction-store.ts",
+      "target": "src/lib/formations.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/football-player-client.ts",
+      "target": "src/lib/player-db-types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/football-player-service.ts",
+      "target": "src/lib/player-db.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/football-player-service.ts",
+      "target": "src/lib/players-data.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/football-player-service.ts",
+      "target": "src/lib/turso.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/formations.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/music-db.ts",
+      "target": "src/lib/music-playlists.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/music-db.ts",
+      "target": "src/lib/turso.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/music-store.ts",
+      "target": "src/lib/music-playlists.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/mystery-pot-store.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-db-types.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-db.ts",
+      "target": "src/lib/player-db-types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-db.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-photo.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-provider.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-provider.ts",
+      "target": "src/lib/player-db-types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-provider.ts",
+      "target": "src/lib/football-player-client.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/player-provider.ts",
+      "target": "src/lib/player-photo.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/players-data.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/players-data.ts",
+      "target": "src/lib/player-photo.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/players-data.ts",
+      "target": "src/data/players-catalog.json",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/room-db.ts",
+      "target": "src/lib/room-types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/room-db.ts",
+      "target": "src/lib/turso.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/room-store.ts",
+      "target": "src/lib/room-types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/types.ts",
+      "target": "src/lib/room-types.ts",
+      "relation": "imports"
+    },
+    {
+      "source": "src/lib/utils.ts",
+      "target": "src/lib/types.ts",
+      "relation": "imports"
+    }
+  ]
+}
