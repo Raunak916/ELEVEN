@@ -13,3 +13,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Always implicitly consult the Graphify knowledge graph (`.graphify/graph.json` and `.graphify/CODEBASE_GRAPH.md`) before investigating, modifying, or refactoring code.
 - Never search or wander blindly. Use the indexed component tree, store mutations (`useAuctionStore`), and API routes to jump directly to exact files.
 - Re-run `node scripts/generate-graphify.mjs` whenever new routes or modules are added to maintain 100% graph freshness.
+
+# Ponytail — Anti-Bloat & Minimal Solutions
+
+- Always apply the Ponytail decision ladder implicitly: YAGNI first, reuse existing codebase helpers/stores, native platform over dependencies, and write the shortest code that works.
+- Never introduce speculative abstractions, unused wrappers, or redundant dependencies.
