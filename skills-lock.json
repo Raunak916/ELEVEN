@@ -192,6 +192,60 @@
       "sourceType": "github",
       "skillPath": "skills/using-agent-skills/SKILL.md",
       "computedHash": "ae93cf505ae7e49da376162da7f9d746c44273704da6765e89d39960f9f6ab67"
+    },
+    "redesign-existing-projects": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/redesign-skill/SKILL.md",
+      "computedHash": "c619dda49b87b720a8e7eac256837c8b2ddc01e8d94e6a53d4e2bd8486a84428"
+    },
+    "redesign-skill": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/redesign-skill/SKILL.md",
+      "computedHash": "c619dda49b87b720a8e7eac256837c8b2ddc01e8d94e6a53d4e2bd8486a84428"
+    },
+    "image-to-code": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/image-to-code-skill/SKILL.md",
+      "computedHash": "87083ec57f4a861d22fba4bcd0c26553d09cda8cc4708844cb3a519d35ed052c"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "9191ad4cc2586246ab35d7fc85dfce561ab7ec63d33c2564a2d4af8e533c8988"
+    },
+    "apple-design": {
+      "source": "apple-design",
+      "sourceType": "github",
+      "skillPath": "skills/apple-design/SKILL.md",
+      "computedHash": "4556f99c2bbbff7c43807a0184877e080fa99a5e349cb792c9c6288c4db0f274"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": "skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "88aadd21220542083a455e373bd162ffe7843266a71f06f4d837bb3b34f9c9c7"
+    },
+    "design-system": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": "skills/design-system/SKILL.md",
+      "computedHash": "b335d0e957a8241c28e5c2a6c3341fbedd6252a0f5356ccbb52e1ec84db3a00d"
+    },
+    "ui-styling": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": "skills/ui-styling/SKILL.md",
+      "computedHash": "c279d37794ad6004ddd49bee67c2102205c72a98e0704c80335f8ecde0dcdb25"
+    },
+    "brand": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": "skills/brand/SKILL.md",
+      "computedHash": "d5031106f6baf017126d64902406226562f15a58700aa9e50586b655dc7887a5"
     }
   }
 }

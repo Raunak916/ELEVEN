@@ -18,3 +18,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Always apply the Ponytail decision ladder implicitly: YAGNI first, reuse existing codebase helpers/stores, native platform over dependencies, and write the shortest code that works.
 - Never introduce speculative abstractions, unused wrappers, or redundant dependencies.
+
+# Visual System & DESIGN.md Contract
+
+- Always implicitly consult `DESIGN.md` for visual specifications, color tokens, typography scales, glassmorphism surfaces, and interaction physics.
+- Adhere to the defined dark luxury stadium aesthetic (`#040609` – `#0e1014`), trophy gold accents (`oklch(0.75 0.18 75)`), pitch emeralds, and position role chromatic gradients (Forward = Rose, Mid = Emerald, Def = Amber, GK = Sky).
+- Strictly avoid arbitrary colors, magic number layouts, and unthemed components.
+
